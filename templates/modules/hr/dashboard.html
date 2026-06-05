@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}HR Dashboard{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-person-badge"></i> Human Resource Management</h2>
+    <div>
+        <a href="{{ url_for('hr_employees') }}" class="btn btn-danger"><i class="bi bi-people"></i> Employees</a>
+        <a href="{{ url_for('hr_leave') }}" class="btn btn-outline-danger"><i class="bi bi-calendar-minus"></i> Leave</a>
+        <a href="{{ url_for('hr_attendance') }}" class="btn btn-outline-danger"><i class="bi bi-clock"></i> Attendance</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card border-primary text-primary h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-people fs-1"></i>
+                <h3>{{ stats.total }}</h3>
+                <p class="mb-0">Active Employees</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-warning text-warning h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-calendar-minus fs-1"></i>
+                <h3>{{ stats.pending_leave }}</h3>
+                <p class="mb-0">Pending Leave Requests</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header bg-danger text-white"><i class="bi bi-people"></i> Employees</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Name</th>
+                                <th>Role</th>
+                                <th>Station</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for e in employees %}
+                            <tr>
+                                <td>{{ e.first_name }} {{ e.last_name }}</td>
+                                <td><span class="badge bg-info">{{ e.role }}</span></td>
+                                <td>{{ e.station.name if e.station else '-' }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if e.is_active else 'secondary' }}">
+                                        {{ 'Active' if e.is_active else 'Inactive' }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="4" class="text-center text-muted py-3">No employees found</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header bg-warning text-white"><i class="bi bi-calendar-minus"></i> Recent Leave Requests</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Employee</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for l in leaves %}
+                            <tr>
+                                <td>{{ l.employee.first_name }} {{ l.employee.last_name }}</td>
+                                <td>{{ l.leave_type }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'warning' if l.status == 'pending' else 'success' if l.status == 'approved' else 'danger' }}">
+                                        {{ l.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="3" class="text-center text-muted py-3">No leave requests</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

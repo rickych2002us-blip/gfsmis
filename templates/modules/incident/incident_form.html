@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Report Incident{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-danger text-white"><i class="bi bi-exclamation-triangle"></i> Report New Incident</div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('incident_new') }}">
+                    <div class="mb-3">
+                        <label class="form-label">Incident Type <span class="text-danger">*</span></label>
+                        <select name="incident_type" class="form-select" required>
+                            <option value="">-- Select Incident Type --</option>
+                            <option value="Structure Fire">Structure Fire</option>
+                            <option value="Vehicle Fire">Vehicle Fire</option>
+                            <option value="Bush Fire">Bush Fire</option>
+                            <option value="Rescue">Rescue</option>
+                            <option value="HAZMAT">HAZMAT</option>
+                            <option value="RTA">RTA</option>
+                            <option value="Flood">Flood</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Location <span class="text-danger">*</span></label>
+                        <input type="text" name="location" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Region</label>
+                        <select name="region" class="form-select">
+                            {% for val, label in REGIONS %}
+                            <option value="{{ val }}" {% if not val %}disabled{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label class="form-label">Latitude</label>
+                            <input type="number" step="any" name="latitude" class="form-control">
+                        </div>
+                        <div class="col">
+                            <label class="form-label">Longitude</label>
+                            <input type="number" step="any" name="longitude" class="form-control">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label class="form-label">Reported By</label>
+                            <input type="text" name="reported_by" class="form-control">
+                        </div>
+                        <div class="col">
+                            <label class="form-label">Contact Phone</label>
+                            <input type="text" name="reported_phone" class="form-control">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Severity <span class="text-danger">*</span></label>
+                        <select name="severity" class="form-select" required>
+                            <option value="">-- Select Severity --</option>
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                            <option value="Critical">Critical</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-danger w-100"><i class="bi bi-send"></i> Report Incident</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

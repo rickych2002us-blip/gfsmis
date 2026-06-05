@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Certificate {{ cert.certificate_no }}{% endblock %}
+{% block content %}
+<div class="row g-3">
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <i class="bi bi-file-earmark-text"></i> Certificate Details
+                <span class="badge bg-{{ 'success' if cert.status == 'approved' else 'danger' if cert.status == 'rejected' else 'warning' }} float-end">
+                    {{ cert.status|upper }}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="row mb-2">
+                    <div class="col-4 fw-bold">Certificate No:</div>
+                    <div class="col-8">{{ cert.certificate_no }}</div>
+                </div>
+                <hr>
+                <h6 class="text-danger"><i class="bi bi-person"></i> Applicant</h6>
+                <div class="row mb-2"><div class="col-4 fw-bold">Name:</div><div class="col-8">{{ cert.applicant_name }}</div></div>
+                <div class="row mb-2"><div class="col-4 fw-bold">Email:</div><div class="col-8">{{ cert.applicant_email or '-' }}</div></div>
+                <div class="row mb-2"><div class="col-4 fw-bold">Phone:</div><div class="col-8">{{ cert.applicant_phone or '-' }}</div></div>
+                <hr>
+                <h6 class="text-danger"><i class="bi bi-building"></i> Business</h6>
+                <div class="row mb-2"><div class="col-4 fw-bold">Name:</div><div class="col-8">{{ cert.business_name or '-' }}</div></div>
+                <div class="row mb-2"><div class="col-4 fw-bold">Address:</div><div class="col-8">{{ cert.business_address or '-' }}</div></div>
+                <div class="row mb-2"><div class="col-4 fw-bold">Property Type:</div><div class="col-8">{{ cert.property_type or '-' }}</div></div>
+                <hr>
+                <div class="row mb-2"><div class="col-4 fw-bold">Submitted:</div><div class="col-8">{{ cert.created_at.strftime('%Y-%m-%d %H:%M') if cert.created_at else '-' }}</div></div>
+                <div class="row mb-2"><div class="col-4 fw-bold">Issue Date:</div><div class="col-8">{{ cert.issue_date.strftime('%Y-%m-%d') if cert.issue_date else '-' }}</div></div>
+                <div class="row mb-2"><div class="col-4 fw-bold">Expiry:</div><div class="col-8">{{ cert.expiry_date.strftime('%Y-%m-%d') if cert.expiry_date else '-' }}</div></div>
+                {% if cert.remarks %}
+                <hr>
+                <div class="row mb-2"><div class="col-4 fw-bold">Remarks:</div><div class="col-8">{{ cert.remarks }}</div></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header bg-danger text-white"><i class="bi bi-pencil-square"></i> Update Status</div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('certificate_update_status', id=cert.id) }}">
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="pending" {{ 'selected' if cert.status == 'pending' }}>Pending</option>
+                            <option value="approved" {{ 'selected' if cert.status == 'approved' }}>Approved</option>
+                            <option value="rejected" {{ 'selected' if cert.status == 'rejected' }}>Rejected</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Remarks</label>
+                        <textarea name="remarks" class="form-control" rows="4">{{ cert.remarks or '' }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-danger w-100"><i class="bi bi-save"></i> Update Status</button>
+                </form>
+            </div>
+        </div>
+        <div class="card mt-3">
+            <div class="card-header bg-danger text-white"><i class="bi bi-arrow-left"></i> Navigation</div>
+            <div class="card-body">
+                <a href="{{ url_for('fire_prevention_dashboard') }}" class="btn btn-outline-danger w-100"><i class="bi bi-arrow-left"></i> Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

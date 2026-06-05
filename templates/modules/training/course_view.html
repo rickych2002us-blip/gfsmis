@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}{{ course.title }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-mortarboard"></i> {{ course.title }}</h2>
+    <div>
+        <span class="badge bg-{{ 'success' if course.status == 'active' else 'primary' if course.status == 'upcoming' else 'secondary' }} fs-6 me-2">{{ course.status }}</span>
+        <a href="{{ url_for('training_dashboard') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white"><i class="bi bi-info-circle"></i> Course Details</div>
+            <div class="card-body">
+                <div class="row mb-2">
+                    <div class="col-sm-3 fw-bold">Code</div>
+                    <div class="col-sm-9">{{ course.code }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-3 fw-bold">Description</div>
+                    <div class="col-sm-9">{{ course.description or 'No description' }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-3 fw-bold">Duration</div>
+                    <div class="col-sm-9">{{ course.duration_hours or '-' }} hours</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-3 fw-bold">Instructor</div>
+                    <div class="col-sm-9">{{ course.instructor.first_name + ' ' + course.instructor.last_name if course.instructor else 'Not assigned' }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-3 fw-bold">Dates</div>
+                    <div class="col-sm-9">{{ course.start_date.strftime('%Y-%m-%d') if course.start_date else 'TBD' }} - {{ course.end_date.strftime('%Y-%m-%d') if course.end_date else 'TBD' }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-3 fw-bold">Max Participants</div>
+                    <div class="col-sm-9">{{ course.max_participants or 'Unlimited' }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-3 fw-bold">Enrolled</div>
+                    <div class="col-sm-9">{{ course.enrollments|length }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-success text-white"><i class="bi bi-person-plus"></i> Enrollment</div>
+            <div class="card-body text-center">
+                {% set enrolled = course.enrollments|selectattr('user_id', 'equalto', current_user.id)|list %}
+                {% if enrolled %}
+                <p class="text-success"><i class="bi bi-check-circle-fill fs-1"></i></p>
+                <p class="fw-bold text-success">You are enrolled</p>
+                <span class="badge bg-{{ 'success' if enrolled[0].status == 'completed' else 'primary' }}">{{ enrolled[0].status }}</span>
+                {% else %}
+                <form action="{{ url_for('training_enroll', id=course.id) }}" method="POST">
+                    <p class="text-muted"><i class="bi bi-person-plus fs-1"></i></p>
+                    <p>Not enrolled yet</p>
+                    <button type="submit" class="btn btn-success w-100"><i class="bi bi-person-check"></i> Enroll Now</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-success text-white"><i class="bi bi-people"></i> Enrolled Participants ({{ course.enrollments|length }})</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr><th>Name</th><th>Email</th><th>Status</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for en in course.enrollments %}
+                            <tr>
+                                <td>{{ en.user.first_name + ' ' + en.user.last_name if en.user else 'Unknown' }}</td>
+                                <td>{{ en.user.email if en.user else '-' }}</td>
+                                <td><span class="badge bg-{{ 'success' if en.status == 'completed' else 'primary' }}">{{ en.status }}</span></td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="3" class="text-center text-muted py-3">No enrollments yet</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-warning"><i class="bi bi-pencil-square"></i> Exams & Results</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr><th>Title</th><th>Passing Score</th><th>My Result</th><th></th></tr>
+                        </thead>
+                        <tbody>
+                            {% for exam in course.exams %}
+                            {% set my_result = exam.results|selectattr('user_id', 'equalto', current_user.id)|first %}
+                            <tr>
+                                <td>{{ exam.title }}</td>
+                                <td>{{ exam.passing_score }}%</td>
+                                <td>
+                                    {% if my_result %}
+                                    <span class="badge bg-{{ 'success' if my_result.passed else 'danger' }}">{{ my_result.score }}%</span>
+                                    {% else %}
+                                    <span class="text-muted">Not taken</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if not my_result %}
+                                    <button class="btn btn-sm btn-outline-warning" data-bs-toggle="collapse" data-bs-target="#resultForm{{ exam.id }}"><i class="bi bi-plus"></i> Add Result</button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr class="collapse" id="resultForm{{ exam.id }}">
+                                <td colspan="4" class="p-3 bg-light">
+                                    <form action="{{ url_for('training_exam_result', id=exam.id) }}" method="POST" class="row g-2 align-items-center">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Score</label>
+                                            <input type="number" name="score" class="form-control form-control-sm" min="0" max="100" required>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Passed</label>
+                                            <div class="form-check mt-2">
+                                                <input class="form-check-input" type="checkbox" name="passed" id="passed{{ exam.id }}">
+                                                <label class="form-check-label" for="passed{{ exam.id }}">Passed</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5 d-flex align-items-end">
+                                            <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-check"></i> Submit Result</button>
+                                        </div>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="4" class="text-center text-muted py-3">No exams for this course</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

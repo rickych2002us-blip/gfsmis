@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}New Investigation{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-plus-circle"></i> New Investigation</h2>
+    <a href="{{ url_for('investigation_dashboard') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back</a>
+</div>
+
+<div class="card">
+    <div class="card-header bg-danger text-white"><i class="bi bi-search"></i> Case Details</div>
+    <div class="card-body">
+        <form action="{{ url_for('investigation_new') }}" method="POST">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Title <span class="text-danger">*</span></label>
+                    <input type="text" name="title" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Related Incident</label>
+                    <select name="incident_id" class="form-select">
+                        <option value="">Select incident (optional)...</option>
+                        {% for inc in incidents %}
+                        <option value="{{ inc.id }}">{{ inc.incident_no }} - {{ inc.incident_type }} ({{ inc.location }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Region</label>
+                    <select name="region" class="form-select">
+                        {% for val, label in REGIONS %}
+                        <option value="{{ val }}" {% if not val %}disabled{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Lead Investigator</label>
+                    <select name="lead_investigator_id" class="form-select">
+                        <option value="">Select investigator...</option>
+                        {% for inv in investigators %}
+                        <option value="{{ inv.id }}">{{ inv.first_name }} {{ inv.last_name }} ({{ inv.role }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 mt-4">
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-check"></i> Open Case</button>
+                    <a href="{{ url_for('investigation_dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

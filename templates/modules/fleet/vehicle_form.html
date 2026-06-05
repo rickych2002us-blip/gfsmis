@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Add Vehicle{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-truck"></i> Add Vehicle</h2>
+    <a href="{{ url_for('fleet_dashboard') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back</a>
+</div>
+
+<div class="card">
+    <div class="card-header bg-danger text-white"><i class="bi bi-plus-circle"></i> Vehicle Information</div>
+    <div class="card-body">
+        <form action="{{ url_for('fleet_vehicle_new') }}" method="POST" enctype="multipart/form-data">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Registration No <span class="text-danger">*</span></label>
+                    <input type="text" name="registration_no" class="form-control" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Vehicle Type</label>
+                    <select name="vehicle_type" class="form-select">
+                        <option value="">Select type...</option>
+                        <option value="Fire Engine">Fire Engine</option>
+                        <option value="Tanker">Tanker</option>
+                        <option value="Rescue">Rescue</option>
+                        <option value="Utility">Utility</option>
+                        <option value="Command">Command</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Photo</label>
+                    <input type="file" name="photo" class="form-control" accept="image/*">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Station</label>
+                    <select name="station_id" class="form-select">
+                        <option value="">Select station...</option>
+                        {% for s in stations %}
+                        <option value="{{ s.id }}">{{ s.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Make</label>
+                    <input type="text" name="make" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Model</label>
+                    <input type="text" name="model" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Year</label>
+                    <input type="number" name="year" class="form-control" min="1900" max="2099">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Fuel Type</label>
+                    <select name="fuel_type" class="form-select">
+                        <option value="">Select...</option>
+                        <option value="Diesel">Diesel</option>
+                        <option value="Petrol">Petrol</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Tank Capacity (L)</label>
+                    <input type="number" name="tank_capacity" class="form-control" step="0.01" min="0">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Insurance Expiry</label>
+                    <input type="date" name="insurance_expiry" class="form-control">
+                </div>
+                <div class="col-12 mt-4">
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-check"></i> Save Vehicle</button>
+                    <a href="{{ url_for('fleet_dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

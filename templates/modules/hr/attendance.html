@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Attendance{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-clock"></i> Attendance - {{ today.strftime('%Y-%m-%d') }}</h2>
+    <div>
+        <form action="{{ url_for('hr_attendance_checkin') }}" method="POST" class="d-inline">
+            <button type="submit" class="btn btn-success"><i class="bi bi-box-arrow-in-right"></i> Check In</button>
+        </form>
+        <form action="{{ url_for('hr_attendance_checkout') }}" method="POST" class="d-inline">
+            <button type="submit" class="btn btn-warning"><i class="bi bi-box-arrow-right"></i> Check Out</button>
+        </form>
+        <a href="{{ url_for('hr_dashboard') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back</a>
+    </div>
+</div>
+
+{% if current_user.role == 'admin' %}
+<div class="collapse mb-4" id="setAttendanceForm">
+    <div class="card">
+        <div class="card-header bg-danger text-white"><i class="bi bi-pencil"></i> Set Attendance Record</div>
+        <div class="card-body">
+            <form action="{{ url_for('hr_attendance_set', id=0) }}" method="POST" id="attendanceSetForm">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Employee</label>
+                        <select name="user_id" class="form-select" required>
+                            <option value="">Select...</option>
+                            {% for u in users %}
+                            <option value="{{ u.id }}">{{ u.first_name }} {{ u.last_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Date</label>
+                        <input type="date" name="date" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Status</label>
+                        <select name="status" class="form-select" required>
+                            <option value="present">Present</option>
+                            <option value="absent">Absent</option>
+                            <option value="late">Late</option>
+                            <option value="half-day">Half Day</option>
+                            <option value="leave">On Leave</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-danger"><i class="bi bi-check"></i> Save</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-list"></i> Today's Attendance</span>
+        <div>
+            <button class="btn btn-sm btn-light" data-bs-toggle="collapse" data-bs-target="#setAttendanceForm"><i class="bi bi-pencil"></i> Set Record</button>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Employee</th>
+                        <th>Role</th>
+                        <th>Station</th>
+                        <th>Check In</th>
+                        <th>Check Out</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in records %}
+                    <tr>
+                        <td>{{ r.user.first_name }} {{ r.user.last_name }}</td>
+                        <td><span class="badge bg-info">{{ r.user.role }}</span></td>
+                        <td>{{ r.user.station.name if r.user.station else '-' }}</td>
+                        <td>{{ r.check_in.strftime('%H:%M:%S') if r.check_in else '-' }}</td>
+                        <td>{{ r.check_out.strftime('%H:%M:%S') if r.check_out else '-' }}</td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if r.status == 'present' else 'danger' if r.status == 'absent' else 'warning' if r.status == 'late' else 'info' }}">
+                                {{ r.status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" class="text-center text-muted py-3">No attendance records for today</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('attendanceSetForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const userId = this.querySelector('[name="user_id"]').value;
+    if (userId) {
+        this.action = this.action.replace('/0', '/' + userId);
+        this.submit();
+    }
+});
+</script>
+{% endblock %}

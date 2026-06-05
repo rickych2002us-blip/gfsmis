@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}Vehicle {{ v.registration_no }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-truck"></i> {{ v.registration_no }}</h2>
+    <div>
+        <span class="badge bg-{{ 'success' if v.status == 'available' else 'warning' if v.status == 'maintenance' else 'secondary' }} fs-6 me-2">{{ v.status }}</span>
+        <a href="{{ url_for('fleet_dashboard') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back</a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-danger text-white"><i class="bi bi-info-circle"></i> Vehicle Details</div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="row mb-2"><div class="col-sm-4 fw-bold">Registration No</div><div class="col-sm-8">{{ v.registration_no }}</div></div>
+                <div class="row mb-2"><div class="col-sm-4 fw-bold">Vehicle Type</div><div class="col-sm-8">{{ v.vehicle_type or '-' }}</div></div>
+                <div class="row mb-2"><div class="col-sm-4 fw-bold">Make</div><div class="col-sm-8">{{ v.make or '-' }}</div></div>
+                <div class="row mb-2"><div class="col-sm-4 fw-bold">Model</div><div class="col-sm-8">{{ v.model or '-' }}</div></div>
+                <div class="row mb-2"><div class="col-sm-4 fw-bold">Year</div><div class="col-sm-8">{{ v.year or '-' }}</div></div>
+                <div class="row mb-2"><div class="col-sm-4 fw-bold">Station</div><div class="col-sm-8">{{ v.station.name if v.station else 'Unassigned' }}</div></div>
+            </div>
+            <div class="col-md-6">
+                <div class="row mb-2"><div class="col-sm-4 fw-bold">Fuel Type</div><div class="col-sm-8">{{ v.fuel_type or '-' }}</div></div>
+                <div class="row mb-2"><div class="col-sm-4 fw-bold">Tank Capacity</div><div class="col-sm-8">{{ v.tank_capacity or '-' }} L</div></div>
+                <div class="row mb-2"><div class="col-sm-4 fw-bold">Mileage</div><div class="col-sm-8">{{ v.mileage or '0' }} km</div></div>
+                <div class="row mb-2"><div class="col-sm-4 fw-bold">Insurance Expiry</div><div class="col-sm-8">{{ v.insurance_expiry.strftime('%Y-%m-%d') if v.insurance_expiry else '-' }}</div></div>
+                <div class="row mb-2"><div class="col-sm-4 fw-bold">Status</div><div class="col-sm-8"><span class="badge bg-{{ 'success' if v.status == 'available' else 'warning' if v.status == 'maintenance' else 'secondary' }}">{{ v.status }}</span></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header bg-warning"><i class="bi bi-tools"></i> Maintenance Records</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr><th>Type</th><th>Description</th><th>Cost</th><th>Provider</th><th>Scheduled</th><th>Status</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for m in v.maintenance_records %}
+                            <tr>
+                                <td>{{ m.maintenance_type or '-' }}</td>
+                                <td>{{ m.description[:40] + '...' if m.description and m.description|length > 40 else m.description or '-' }}</td>
+                                <td>${{ '%.2f'|format(m.cost) if m.cost else '-' }}</td>
+                                <td>{{ m.service_provider or '-' }}</td>
+                                <td>{{ m.scheduled_date.strftime('%Y-%m-%d') if m.scheduled_date else '-' }}</td>
+                                <td><span class="badge bg-{{ 'success' if m.status == 'completed' else 'warning' if m.status == 'scheduled' else 'secondary' }}">{{ m.status }}</span></td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="6" class="text-center text-muted py-3">No maintenance records</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header bg-warning"><i class="bi bi-plus-circle"></i> Add Maintenance Record</div>
+            <div class="card-body">
+                <form action="{{ url_for('fleet_maintenance_new') }}" method="POST">
+                    <input type="hidden" name="vehicle_id" value="{{ v.id }}">
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <label class="form-label">Maintenance Type</label>
+                            <input type="text" name="maintenance_type" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Service Provider</label>
+                            <input type="text" name="service_provider" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Description</label>
+                            <textarea name="description" class="form-control form-control-sm" rows="2"></textarea>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Cost</label>
+                            <input type="number" name="cost" class="form-control form-control-sm" step="0.01" min="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Scheduled Date</label>
+                            <input type="date" name="scheduled_date" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-warning btn-sm w-100"><i class="bi bi-plus"></i> Add</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header bg-info text-white"><i class="bi bi-fuel-pump"></i> Fuel Logs</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr><th>Date</th><th>Liters</th><th>Cost</th><th>Station</th><th>Mileage</th><th>Driver</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for fl in v.fuel_logs %}
+                            <tr>
+                                <td>{{ fl.refuel_date.strftime('%Y-%m-%d %H:%M') if fl.refuel_date else '-' }}</td>
+                                <td>{{ fl.liters }}</td>
+                                <td>${{ '%.2f'|format(fl.cost) if fl.cost else '-' }}</td>
+                                <td>{{ fl.station_name or '-' }}</td>
+                                <td>{{ fl.mileage or '-' }} km</td>
+                                <td>{{ fl.driver.first_name + ' ' + fl.driver.last_name if fl.driver else '-' }}</td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="6" class="text-center text-muted py-3">No fuel logs</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header bg-info text-white"><i class="bi bi-plus-circle"></i> Add Fuel Log</div>
+            <div class="card-body">
+                <form action="{{ url_for('fleet_fuel_new') }}" method="POST">
+                    <input type="hidden" name="vehicle_id" value="{{ v.id }}">
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <label class="form-label">Liters <span class="text-danger">*</span></label>
+                            <input type="number" name="liters" class="form-control form-control-sm" step="0.01" min="0" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Cost</label>
+                            <input type="number" name="cost" class="form-control form-control-sm" step="0.01" min="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Station Name</label>
+                            <input type="text" name="station_name" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Mileage (km)</label>
+                            <input type="number" name="mileage" class="form-control form-control-sm" step="0.1" min="0">
+                        </div>
+                        <div class="col-md-8 d-flex align-items-end">
+                            <button type="submit" class="btn btn-info btn-sm w-100"><i class="bi bi-plus"></i> Add Fuel Log</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

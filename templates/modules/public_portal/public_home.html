@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Public Portal{% endblock %}
+{% block content %}
+<div class="row justify-content-center mb-4">
+    <div class="col-md-8 text-center">
+        <h1 class="display-5 text-danger"><i class="bi bi-shield-fill-check"></i> GFSMIS Public Portal</h1>
+        <p class="lead text-muted">Welcome to the Guyana Fire Service Management Information System public portal. Select a service below.</p>
+    </div>
+</div>
+
+<div class="row g-4 justify-content-center">
+    <div class="col-md-4 col-lg-3">
+        <a href="{{ url_for('public_certificate_apply') }}" class="text-decoration-none">
+            <div class="card text-center h-100 border-danger">
+                <div class="card-body">
+                    <i class="bi bi-file-earmark-text text-danger display-3"></i>
+                    <h5 class="card-title mt-3">Apply for Certificate</h5>
+                    <p class="card-text text-muted small">Request a Fire Certificate for your business</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4 col-lg-3">
+        <a href="{{ url_for('public_complaint') }}" class="text-decoration-none">
+            <div class="card text-center h-100 border-warning">
+                <div class="card-body">
+                    <i class="bi bi-megaphone text-warning display-3"></i>
+                    <h5 class="card-title mt-3">Submit Complaint</h5>
+                    <p class="card-text text-muted small">File a complaint with the Fire Service</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4 col-lg-3">
+        <a href="{{ url_for('public_hazard') }}" class="text-decoration-none">
+            <div class="card text-center h-100 border-danger">
+                <div class="card-body">
+                    <i class="bi bi-exclamation-triangle text-danger display-3"></i>
+                    <h5 class="card-title mt-3">Report Hazard</h5>
+                    <p class="card-text text-muted small">Report a fire or safety hazard</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4 col-lg-3">
+        <a href="{{ url_for('public_training_register') }}" class="text-decoration-none">
+            <div class="card text-center h-100 border-info">
+                <div class="card-body">
+                    <i class="bi bi-mortarboard text-info display-3"></i>
+                    <h5 class="card-title mt-3">Register for Training</h5>
+                    <p class="card-text text-muted small">Sign up for fire safety training courses</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4 col-lg-3">
+        <a href="{{ url_for('public_status') }}" class="text-decoration-none">
+            <div class="card text-center h-100 border-success">
+                <div class="card-body">
+                    <i class="bi bi-search text-success display-3"></i>
+                    <h5 class="card-title mt-3">Check Status</h5>
+                    <p class="card-text text-muted small">Check the status of your application</p>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+{% endblock %}

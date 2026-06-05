@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Investigations{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-search"></i> Fire Investigations</h2>
+    <div>
+        <a href="{{ url_for('investigation_new') }}" class="btn btn-danger"><i class="bi bi-plus-circle"></i> New Investigation</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-primary text-primary h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-folder2-open fs-1"></i>
+                <h3>{{ stats.total }}</h3>
+                <p class="mb-0">Total Cases</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-warning text-warning h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-unlock fs-1"></i>
+                <h3>{{ stats.open }}</h3>
+                <p class="mb-0">Open</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-success text-success h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-lock fs-1"></i>
+                <h3>{{ stats.closed }}</h3>
+                <p class="mb-0">Closed</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-danger text-white"><i class="bi bi-list"></i> Investigation Cases</div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Case No</th>
+                        <th>Title</th>
+                        <th>Lead Investigator</th>
+                        <th>Origin</th>
+                        <th>Court Case</th>
+                        <th>Status</th>
+                        <th>Opened</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inv in investigations %}
+                    <tr>
+                        <td>{{ inv.case_no }}</td>
+                        <td>{{ inv.title }}</td>
+                        <td>{{ inv.lead_investigator.first_name + ' ' + inv.lead_investigator.last_name if inv.lead_investigator else 'Unassigned' }}</td>
+                        <td>{{ inv.origin or '-' }}</td>
+                        <td>
+                            {% if inv.is_court_case %}
+                            <span class="badge bg-warning">Yes</span>
+                            {% else %}
+                            <span class="badge bg-secondary">No</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ 'warning' if inv.status == 'open' else 'success' if inv.status == 'closed' else 'secondary' }}">
+                                {{ inv.status }}
+                            </span>
+                        </td>
+                        <td>{{ inv.created_at.strftime('%Y-%m-%d') if inv.created_at else '-' }}</td>
+                        <td><a href="{{ url_for('investigation_view', id=inv.id) }}" class="btn btn-sm btn-outline-danger"><i class="bi bi-eye"></i></a></td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="8" class="text-center text-muted py-3">No investigation cases found</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

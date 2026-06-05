@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Submit a Complaint{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-warning text-white"><i class="bi bi-megaphone"></i> Submit a Complaint</div>
+            <div class="card-body">
+                <p class="text-muted">Use this form to file a complaint with the Guyana Fire Service.</p>
+                <form action="{{ url_for('public_complaint') }}" method="POST">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Name</label>
+                            <input type="text" name="name" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Phone</label>
+                            <input type="text" name="phone" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Complaint Type</label>
+                            <select name="complaint_type" class="form-select">
+                                <option value="">Select...</option>
+                                <option value="Noise">Noise</option>
+                                <option value="Fire Hazard">Fire Hazard</option>
+                                <option value="Safety">Safety</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Region</label>
+                            <select name="region" class="form-select">
+                                {% for val, label in REGIONS %}
+                                <option value="{{ val }}" {% if not val %}disabled{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Subject <span class="text-danger">*</span></label>
+                            <input type="text" name="subject" class="form-control" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Description <span class="text-danger">*</span></label>
+                            <textarea name="description" class="form-control" rows="4" required></textarea>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-warning"><i class="bi bi-check"></i> Submit Complaint</button>
+                            <a href="{{ url_for('public_portal') }}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

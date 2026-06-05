@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block title %}Incident {{ inc.incident_no }}{% endblock %}
+{% block content %}
+<div class="row g-3">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <i class="bi bi-exclamation-triangle"></i> Incident {{ inc.incident_no }}
+                <span class="badge bg-{{ 'danger' if inc.status == 'active' else 'warning' if inc.status in ['reported','dispatched'] else 'success' if inc.status == 'closed' else 'secondary' }} float-end">
+                    {{ inc.status|upper }}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="row mb-2"><div class="col-3 fw-bold">Type:</div><div class="col-9">{{ inc.incident_type }}</div></div>
+                <div class="row mb-2"><div class="col-3 fw-bold">Location:</div><div class="col-9">{{ inc.location }}</div></div>
+                <div class="row mb-2"><div class="col-3 fw-bold">Region:</div><div class="col-9">{{ inc.region or '-' }}</div></div>
+                <div class="row mb-2"><div class="col-3 fw-bold">Coordinates:</div><div class="col-9">{{ inc.latitude }}, {{ inc.longitude }}{% if inc.latitude and inc.longitude else 'N/A' %}</div></div>
+                <div class="row mb-2"><div class="col-3 fw-bold">Severity:</div><div class="col-9">
+                    <span class="badge bg-{{ 'danger' if inc.severity == 'Critical' else 'warning' if inc.severity == 'High' else 'info' if inc.severity == 'Medium' else 'secondary' }}">
+                        {{ inc.severity }}
+                    </span>
+                </div></div>
+                <div class="row mb-2"><div class="col-3 fw-bold">Description:</div><div class="col-9">{{ inc.description or '-' }}</div></div>
+                <hr>
+                <h6><i class="bi bi-person"></i> Reporting Party</h6>
+                <div class="row mb-2"><div class="col-3 fw-bold">Reported By:</div><div class="col-9">{{ inc.reported_by or '-' }}</div></div>
+                <div class="row mb-2"><div class="col-3 fw-bold">Phone:</div><div class="col-9">{{ inc.reported_phone or '-' }}</div></div>
+                <hr>
+                <h6><i class="bi bi-clock-history"></i> Timeline</h6>
+                <div class="row mb-2"><div class="col-3 fw-bold">Dispatched:</div><div class="col-9">{{ inc.dispatch_time.strftime('%Y-%m-%d %H:%M') if inc.dispatch_time else '-' }}</div></div>
+                <div class="row mb-2"><div class="col-3 fw-bold">Arrived:</div><div class="col-9">{{ inc.arrival_time.strftime('%Y-%m-%d %H:%M') if inc.arrival_time else '-' }}</div></div>
+                <div class="row mb-2"><div class="col-3 fw-bold">Closed:</div><div class="col-9">{{ inc.closed_time.strftime('%Y-%m-%d %H:%M') if inc.closed_time else '-' }}</div></div>
+                <hr>
+                <h6><i class="bi bi-bar-chart"></i> Impact</h6>
+                <div class="row mb-2"><div class="col-3 fw-bold">Casualties:</div><div class="col-9">{{ inc.casualties or 0 }}</div></div>
+                <div class="row mb-2"><div class="col-3 fw-bold">Fatalities:</div><div class="col-9">{{ inc.fatalities or 0 }}</div></div>
+                <div class="row mb-2"><div class="col-3 fw-bold">Property Damage:</div><div class="col-9">${{ '%.2f'|format(inc.property_damage_estimate) if inc.property_damage_estimate else 'N/A' }}</div></div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header bg-danger text-white"><i class="bi bi-pencil-square"></i> Update Incident</div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('incident_update', id=inc.id) }}">
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Status</label>
+                            <select name="status" class="form-select">
+                                <option value="reported" {{ 'selected' if inc.status == 'reported' }}>Reported</option>
+                                <option value="dispatched" {{ 'selected' if inc.status == 'dispatched' }}>Dispatched</option>
+                                <option value="active" {{ 'selected' if inc.status == 'active' }}>Active</option>
+                                <option value="closed" {{ 'selected' if inc.status == 'closed' }}>Closed</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Arrival Time</label>
+                            <input type="datetime-local" name="arrival_time" class="form-control" value="{{ inc.arrival_time.strftime('%Y-%m-%dT%H:%M') if inc.arrival_time else '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Closed Time</label>
+                            <input type="datetime-local" name="closed_time" class="form-control" value="{{ inc.closed_time.strftime('%Y-%m-%dT%H:%M') if inc.closed_time else '' }}">
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Casualties</label>
+                            <input type="number" name="casualties" class="form-control" value="{{ inc.casualties or 0 }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Fatalities</label>
+                            <input type="number" name="fatalities" class="form-control" value="{{ inc.fatalities or 0 }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Property Damage ($)</label>
+                            <input type="number" step="0.01" name="property_damage_estimate" class="form-control" value="{{ inc.property_damage_estimate or '' }}">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-danger w-100"><i class="bi bi-save"></i> Update Incident</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header bg-danger text-white"><i class="bi bi-truck"></i> Allocated Resources</div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('incident_resource_add', id=inc.id) }}" class="row g-2 mb-3">
+                    <div class="col-md-5">
+                        <select name="resource_type" class="form-select">
+                            <option value="">-- Resource Type --</option>
+                            <option value="Appliance">Appliance</option>
+                            <option value="Vehicle">Vehicle</option>
+                            <option value="Personnel">Personnel</option>
+                            <option value="Equipment">Equipment</option>
+                        </select>
+                    </div>
+                    <div class="col-md-5">
+                        <input type="text" name="identifier" class="form-control" placeholder="Identifier (e.g. Unit #)">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-danger btn-sm w-100"><i class="bi bi-plus"></i> Add</button>
+                    </div>
+                </form>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                            <tr><th>Resource Type</th><th>Identifier</th><th>Assigned At</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for r in inc.resources %}
+                            <tr>
+                                <td>{{ r.resource_type }}</td>
+                                <td>{{ r.identifier or '-' }}</td>
+                                <td>{{ r.assigned_at.strftime('%Y-%m-%d %H:%M') if r.assigned_at else '-' }}</td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="3" class="text-muted text-center">No resources allocated</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header bg-danger text-white"><i class="bi bi-people"></i> Responders</div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                            <tr><th>Name</th><th>Role</th><th>Assigned At</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for resp in inc.responders %}
+                            <tr>
+                                <td>{{ resp.user.first_name + ' ' + resp.user.last_name if resp.user else 'Unknown' }}</td>
+                                <td>{{ resp.role or '-' }}</td>
+                                <td>{{ resp.assigned_at.strftime('%Y-%m-%d %H:%M') if resp.assigned_at else '-' }}</td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="3" class="text-muted text-center">No responders assigned</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-danger text-white"><i class="bi bi-info-circle"></i> Quick Info</div>
+            <div class="card-body">
+                <div class="mb-2"><span class="fw-bold">Created:</span><br>{{ inc.created_at.strftime('%Y-%m-%d %H:%M') if inc.created_at else '-' }}</div>
+                <div class="mb-2"><span class="fw-bold">Resources:</span><br>{{ inc.resources|length }}</div>
+                <div class="mb-2"><span class="fw-bold">Responders:</span><br>{{ inc.responders|length }}</div>
+                <div class="mb-2"><span class="fw-bold">Dispatched By:</span><br>{{ inc.dispatched_by_user.first_name + ' ' + inc.dispatched_by_user.last_name if inc.dispatched_by_user else 'N/A' }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

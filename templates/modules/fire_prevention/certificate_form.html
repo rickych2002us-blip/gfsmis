@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}New Fire Certificate{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-danger text-white"><i class="bi bi-file-earmark-plus"></i> Apply for Fire Certificate</div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('certificate_new') }}">
+                    <h5 class="text-danger"><i class="bi bi-person"></i> Applicant Information</h5>
+                    <hr>
+                    <div class="mb-3">
+                        <label class="form-label">Applicant Name <span class="text-danger">*</span></label>
+                        <input type="text" name="applicant_name" class="form-control" required>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="applicant_email" class="form-control">
+                        </div>
+                        <div class="col">
+                            <label class="form-label">Phone</label>
+                            <input type="text" name="applicant_phone" class="form-control">
+                        </div>
+                    </div>
+
+                    <h5 class="text-danger mt-4"><i class="bi bi-building"></i> Business Information</h5>
+                    <hr>
+                    <div class="mb-3">
+                        <label class="form-label">Business Name</label>
+                        <input type="text" name="business_name" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Business Address</label>
+                        <textarea name="business_address" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Property Type <span class="text-danger">*</span></label>
+                        <select name="property_type" class="form-select" required>
+                            <option value="">-- Select Property Type --</option>
+                            <option value="Commercial">Commercial</option>
+                            <option value="Residential">Residential</option>
+                            <option value="Industrial">Industrial</option>
+                            <option value="Government">Government</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-danger w-100"><i class="bi bi-check-circle"></i> Submit Application</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

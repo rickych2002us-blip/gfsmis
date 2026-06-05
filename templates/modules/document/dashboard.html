@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Documents{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-folder"></i> Document Management</h2>
+    <div>
+        <span class="badge bg-primary fs-6 me-2">{{ stats.total }} Total</span>
+        <span class="badge bg-secondary fs-6 me-2">{{ stats.archived }} Archived</span>
+        <a href="{{ url_for('document_upload') }}" class="btn btn-danger"><i class="bi bi-upload"></i> Upload Document</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-danger text-white"><i class="bi bi-list"></i> Documents</div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>File Type</th>
+                        <th>File Size</th>
+                        <th>Uploader</th>
+                        <th>Created</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doc in documents %}
+                    <tr class="{{ 'table-secondary' if doc.is_archived }}">
+                        <td>{{ doc.title }}</td>
+                        <td><span class="badge bg-info">{{ doc.category or 'Uncategorized' }}</span></td>
+                        <td>{{ doc.file_type|upper or '-' }}</td>
+                        <td>
+                            {% if doc.file_size %}
+                                {% if doc.file_size >= 1048576 %}
+                                    {{ '%.1f'|format(doc.file_size / 1048576) }} MB
+                                {% elif doc.file_size >= 1024 %}
+                                    {{ '%.1f'|format(doc.file_size / 1024) }} KB
+                                {% else %}
+                                    {{ doc.file_size }} B
+                                {% endif %}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>{{ doc.uploader.first_name + ' ' + doc.uploader.last_name if doc.uploader else 'Unknown' }}</td>
+                        <td>{{ doc.created_at.strftime('%Y-%m-%d') if doc.created_at else '-' }}</td>
+                        <td>
+                            {% if doc.is_archived %}
+                                <span class="badge bg-secondary">Archived</span>
+                            {% else %}
+                                <span class="badge bg-success">Active</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if doc.file_path %}
+                            <a href="{{ url_for('document_download', id=doc.id) }}" class="btn btn-sm btn-outline-primary" title="Download"><i class="bi bi-download"></i></a>
+                            {% endif %}
+                            <form action="{{ url_for('document_archive', id=doc.id) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-{{ 'success' if doc.is_archived else 'secondary' }}" title="{{ 'Unarchive' if doc.is_archived else 'Archive' }}">
+                                    <i class="bi bi-{{ 'archive' if not doc.is_archived else 'box-arrow-up' }}"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="8" class="text-center text-muted py-3">No documents uploaded yet</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

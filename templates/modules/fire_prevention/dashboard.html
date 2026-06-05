@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Fire Prevention{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-shield"></i> Fire Prevention & Compliance</h2>
+    <div>
+        <a href="{{ url_for('certificate_new') }}" class="btn btn-danger"><i class="bi bi-plus-circle"></i> New Certificate</a>
+        <a href="{{ url_for('building_plan_new') }}" class="btn btn-outline-danger"><i class="bi bi-plus-circle"></i> New Building Plan</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-2">
+        <div class="card border-primary text-primary h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-file-earmark-text fs-1"></i>
+                <h3>{{ stats.total }}</h3>
+                <p class="mb-0">Total Certificates</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-warning text-warning h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-hourglass-split fs-1"></i>
+                <h3>{{ stats.pending }}</h3>
+                <p class="mb-0">Pending</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-success text-success h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-check-circle fs-1"></i>
+                <h3>{{ stats.approved }}</h3>
+                <p class="mb-0">Approved</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-danger text-danger h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-x-circle fs-1"></i>
+                <h3>{{ stats.rejected }}</h3>
+                <p class="mb-0">Rejected</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-info text-info h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-building fs-1"></i>
+                <h3>{{ stats.plans }}</h3>
+                <p class="mb-0">Building Plans</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header bg-danger text-white"><i class="bi bi-file-earmark-text"></i> Fire Certificates</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Cert #</th>
+                                <th>Applicant</th>
+                                <th>Business</th>
+                                <th>Property Type</th>
+                                <th>Status</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cert in certificates %}
+                            <tr>
+                                <td>{{ cert.certificate_no }}</td>
+                                <td>{{ cert.applicant_name }}</td>
+                                <td>{{ cert.business_name or '-' }}</td>
+                                <td>{{ cert.property_type or '-' }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if cert.status == 'approved' else 'danger' if cert.status == 'rejected' else 'warning' }}">
+                                        {{ cert.status }}
+                                    </span>
+                                </td>
+                                <td><a href="{{ url_for('certificate_view', id=cert.id) }}" class="btn btn-sm btn-outline-danger"><i class="bi bi-eye"></i></a></td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="6" class="text-center text-muted py-3">No certificates found</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header bg-danger text-white"><i class="bi bi-building"></i> Building Plans</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Project</th>
+                                <th>Applicant</th>
+                                <th>Status</th>
+                                <th>Submitted</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for plan in plans %}
+                            <tr>
+                                <td>{{ plan.project_name }}</td>
+                                <td>{{ plan.applicant_name }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if plan.status == 'approved' else 'danger' if plan.status == 'rejected' else 'secondary' }}">
+                                        {{ plan.status }}
+                                    </span>
+                                </td>
+                                <td>{{ plan.submitted_at.strftime('%Y-%m-%d') if plan.submitted_at else '-' }}</td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="4" class="text-center text-muted py-3">No building plans</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

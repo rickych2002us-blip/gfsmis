@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Inspections{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-clipboard-check"></i> Inspection Management</h2>
+    <a href="{{ url_for('inspection_new') }}" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Schedule Inspection</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-primary text-primary h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-list-check fs-1"></i>
+                <h3>{{ stats.total }}</h3>
+                <p class="mb-0">Total Inspections</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-warning text-warning h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-calendar-check fs-1"></i>
+                <h3>{{ stats.scheduled }}</h3>
+                <p class="mb-0">Scheduled</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-success text-success h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-check2-all fs-1"></i>
+                <h3>{{ stats.completed }}</h3>
+                <p class="mb-0">Completed</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-primary text-white"><i class="bi bi-table"></i> All Inspections</div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Inspection #</th>
+                        <th>Property Name</th>
+                        <th>Property Type</th>
+                        <th>Inspector</th>
+                        <th>Scheduled</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for insp in inspections %}
+                    <tr>
+                        <td>{{ insp.inspection_no }}</td>
+                        <td>{{ insp.property_name }}</td>
+                        <td>{{ insp.property_type or '-' }}</td>
+                        <td>{{ insp.inspector.first_name + ' ' + insp.inspector.last_name if insp.inspector else 'Unassigned' }}</td>
+                        <td>{{ insp.scheduled_date.strftime('%Y-%m-%d %H:%M') if insp.scheduled_date else '-' }}</td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if insp.status == 'completed' else 'warning' if insp.status == 'scheduled' else 'secondary' }}">
+                                {{ insp.status }}
+                            </span>
+                        </td>
+                        <td><a href="{{ url_for('inspection_view', id=insp.id) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a></td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="7" class="text-center text-muted py-3">No inspections found</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

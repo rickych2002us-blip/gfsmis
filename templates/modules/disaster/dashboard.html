@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+{% block title %}Disaster Management{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-tornado"></i> Disaster Management</h2>
+    <div>
+        <button class="btn btn-danger" data-bs-toggle="collapse" data-bs-target="#addEventForm"><i class="bi bi-plus-circle"></i> Add Event</button>
+        <button class="btn btn-outline-danger" data-bs-toggle="collapse" data-bs-target="#addShelterForm"><i class="bi bi-building"></i> New Shelter</button>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-warning text-warning h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-exclamation-triangle fs-1"></i>
+                <h3>{{ stats.active }}</h3>
+                <p class="mb-0">Active Events</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-primary text-primary h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-list fs-1"></i>
+                <h3>{{ stats.total }}</h3>
+                <p class="mb-0">Total Events</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-success text-success h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-house-heart fs-1"></i>
+                <h3>{{ stats.shelters }}</h3>
+                <p class="mb-0">Shelters</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="collapse mb-4" id="addEventForm">
+    <div class="card">
+        <div class="card-header bg-danger text-white"><i class="bi bi-plus-circle"></i> Add Disaster Event</div>
+        <div class="card-body">
+            <form action="{{ url_for('disaster_event_new') }}" method="POST">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Event Type <span class="text-danger">*</span></label>
+                        <select name="event_type" class="form-select" required>
+                            <option value="">Select...</option>
+                            <option value="Flood">Flood</option>
+                            <option value="Hurricane">Hurricane</option>
+                            <option value="Fire">Fire</option>
+                            <option value="Earthquake">Earthquake</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Location <span class="text-danger">*</span></label>
+                        <input type="text" name="location" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Region</label>
+                        <select name="region" class="form-select">
+                            {% for val, label in REGIONS %}
+                            <option value="{{ val }}" {% if not val %}disabled{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Latitude</label>
+                        <input type="number" name="latitude" class="form-control" step="any">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Longitude</label>
+                        <input type="number" name="longitude" class="form-control" step="any">
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Severity</label>
+                        <select name="severity" class="form-select">
+                            <option value="">Select...</option>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                            <option value="critical">Critical</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-danger"><i class="bi bi-check"></i> Save Event</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="collapse mb-4" id="addShelterForm">
+    <div class="card">
+        <div class="card-header bg-danger text-white"><i class="bi bi-building"></i> Add New Shelter</div>
+        <div class="card-body">
+            <form action="{{ url_for('disaster_shelter_new') }}" method="POST">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Name <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Region</label>
+                        <select name="region" class="form-select">
+                            {% for val, label in REGIONS %}
+                            <option value="{{ val }}" {% if not val %}disabled{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Address</label>
+                        <input type="text" name="address" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Capacity</label>
+                        <input type="number" name="capacity" class="form-control" min="0">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Contact</label>
+                        <input type="text" name="contact" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Latitude</label>
+                        <input type="number" name="latitude" class="form-control" step="any">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Longitude</label>
+                        <input type="number" name="longitude" class="form-control" step="any">
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-danger"><i class="bi bi-check"></i> Save Shelter</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-danger text-white"><i class="bi bi-exclamation-triangle"></i> Disaster Events</div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Event No</th>
+                        <th>Type</th>
+                        <th>Location</th>
+                        <th>Region</th>
+                        <th>Severity</th>
+                        <th>Status</th>
+                        <th>Declared At</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for e in events %}
+                    <tr>
+                        <td>{{ e.event_no }}</td>
+                        <td><span class="badge bg-info">{{ e.event_type }}</span></td>
+                        <td>{{ e.location }}</td>
+                        <td>{{ e.region or '-' }}</td>
+                        <td>
+                            <span class="badge bg-{{ 'danger' if e.severity == 'critical' else 'warning' if e.severity == 'high' else 'primary' if e.severity == 'medium' else 'secondary' }}">
+                                {{ e.severity or '-' }}
+                            </span>
+                        </td>
+                        <td><span class="badge bg-{{ 'danger' if e.status == 'active' else 'success' if e.status == 'resolved' else 'secondary' }}">{{ e.status }}</span></td>
+                        <td>{{ e.declared_at.strftime('%Y-%m-%d %H:%M') if e.declared_at else '-' }}</td>
+                        <td>
+                            <form action="{{ url_for('disaster_event_update', id=e.id) }}" method="POST" class="d-inline">
+                                <select name="status" class="form-select form-select-sm d-inline w-auto" onchange="this.form.submit()">
+                                    <option value="active" {{ 'selected' if e.status == 'active' }}>Active</option>
+                                    <option value="monitoring" {{ 'selected' if e.status == 'monitoring' }}>Monitoring</option>
+                                    <option value="resolved" {{ 'selected' if e.status == 'resolved' }}>Resolved</option>
+                                </select>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="8" class="text-center text-muted py-3">No disaster events</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-danger text-white"><i class="bi bi-house-heart"></i> Shelters</div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Name</th>
+                        <th>Region</th>
+                        <th>Address</th>
+                        <th>Capacity</th>
+                        <th>Contact</th>
+                        <th>Latitude</th>
+                        <th>Longitude</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in shelters %}
+                    <tr>
+                        <td>{{ s.name }}</td>
+                        <td>{{ s.region or '-' }}</td>
+                        <td>{{ s.address or '-' }}</td>
+                        <td>{{ s.capacity or '-' }}</td>
+                        <td>{{ s.contact or '-' }}</td>
+                        <td>{{ s.latitude or '-' }}</td>
+                        <td>{{ s.longitude or '-' }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="7" class="text-center text-muted py-3">No shelters found</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

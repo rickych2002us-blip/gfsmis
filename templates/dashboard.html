@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-speedometer2"></i> Operational Dashboard</h2>
+    <span class="badge bg-danger fs-6">{{ current_user.role|title }}: {{ current_user.first_name }} {{ current_user.last_name }}</span>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-danger text-danger h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-exclamation-triangle-fill fs-1"></i>
+                <h3 class="mt-2">{{ stats.active_incidents }}</h3>
+                <p class="mb-0">Active Incidents</p>
+            </div>
+            <div class="card-footer bg-danger text-white text-center py-1">
+                <a href="{{ url_for('incident_dashboard') }}" class="text-white text-decoration-none">View All <i class="bi bi-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-warning text-warning h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-file-earmark-text-fill fs-1"></i>
+                <h3 class="mt-2">{{ stats.pending_certificates }}</h3>
+                <p class="mb-0">Pending Certificates</p>
+            </div>
+            <div class="card-footer bg-warning text-dark text-center py-1">
+                <a href="{{ url_for('fire_prevention_dashboard') }}" class="text-dark text-decoration-none">View All <i class="bi bi-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-primary text-primary h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-people-fill fs-1"></i>
+                <h3 class="mt-2">{{ stats.total_staff }}</h3>
+                <p class="mb-0">Active Personnel</p>
+            </div>
+            <div class="card-footer bg-primary text-white text-center py-1">
+                <a href="{{ url_for('hr_employees') }}" class="text-white text-decoration-none">View All <i class="bi bi-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-success text-success h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-truck-front-fill fs-1"></i>
+                <h3 class="mt-2">{{ stats.vehicles_available }}</h3>
+                <p class="mb-0">Vehicles Available</p>
+            </div>
+            <div class="card-footer bg-success text-white text-center py-1">
+                <a href="{{ url_for('fleet_dashboard') }}" class="text-white text-decoration-none">View All <i class="bi bi-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <i class="bi bi-exclamation-triangle"></i> Recent Incidents
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light"><tr><th>#</th><th>Type</th><th>Location</th><th>Status</th><th></th></tr></thead>
+                        <tbody>
+                            {% for inc in recent_incidents %}
+                            <tr>
+                                <td>{{ inc.incident_no }}</td>
+                                <td>{{ inc.incident_type }}</td>
+                                <td>{{ inc.location[:40] }}...</td>
+                                <td><span class="badge bg-{{ 'danger' if inc.status == 'active' else 'warning' if inc.status == 'dispatched' else 'secondary' }}">{{ inc.status }}</span></td>
+                                <td><a href="{{ url_for('incident_view', id=inc.id) }}" class="btn btn-sm btn-outline-danger"><i class="bi bi-eye"></i></a></td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" class="text-center text-muted py-3">No incidents reported</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-warning">
+                <i class="bi bi-file-earmark-text"></i> Recent Certificates
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light"><tr><th>Cert #</th><th>Applicant</th><th>Business</th><th>Status</th><th></th></tr></thead>
+                        <tbody>
+                            {% for cert in recent_certs %}
+                            <tr>
+                                <td>{{ cert.certificate_no }}</td>
+                                <td>{{ cert.applicant_name }}</td>
+                                <td>{{ cert.business_name or '-' }}</td>
+                                <td><span class="badge bg-{{ 'success' if cert.status == 'approved' else 'danger' if cert.status == 'rejected' else 'warning' }}">{{ cert.status }}</span></td>
+                                <td><a href="{{ url_for('certificate_view', id=cert.id) }}" class="btn btn-sm btn-outline-warning"><i class="bi bi-eye"></i></a></td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" class="text-center text-muted py-3">No certificates</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-2">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-info text-white"><i class="bi bi-clipboard-check"></i> Quick Actions</div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('incident_new') }}" class="btn btn-outline-danger"><i class="bi bi-plus-circle"></i> Report Incident</a>
+                    <a href="{{ url_for('inspection_new') }}" class="btn btn-outline-primary"><i class="bi bi-plus-circle"></i> Schedule Inspection</a>
+                    <a href="{{ url_for('certificate_new') }}" class="btn btn-outline-warning"><i class="bi bi-plus-circle"></i> New Certificate</a>
+                    <a href="{{ url_for('hr_leave_apply') }}" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#leaveModal"><i class="bi bi-calendar-plus"></i> Apply Leave</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-danger text-white"><i class="bi bi-shield-fill-check"></i> GFSMIS</div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4 col-md-2 mb-3"><a href="{{ url_for('incident_dashboard') }}" class="text-decoration-none text-danger"><i class="bi bi-exclamation-triangle-fill fs-2"></i><br><small>Incidents</small></a></div>
+                    <div class="col-4 col-md-2 mb-3"><a href="{{ url_for('inspection_dashboard') }}" class="text-decoration-none text-primary"><i class="bi bi-clipboard-check-fill fs-2"></i><br><small>Inspections</small></a></div>
+                    <div class="col-4 col-md-2 mb-3"><a href="{{ url_for('fire_prevention_dashboard') }}" class="text-decoration-none text-warning"><i class="bi bi-shield-fill fs-2"></i><br><small>Prevention</small></a></div>
+                    <div class="col-4 col-md-2 mb-3"><a href="{{ url_for('investigation_dashboard') }}" class="text-decoration-none text-secondary"><i class="bi bi-search fs-2"></i><br><small>Investigations</small></a></div>
+                    <div class="col-4 col-md-2 mb-3"><a href="{{ url_for('hr_dashboard') }}" class="text-decoration-none text-success"><i class="bi bi-people-fill fs-2"></i><br><small>HR</small></a></div>
+                    <div class="col-4 col-md-2 mb-3"><a href="{{ url_for('fleet_dashboard') }}" class="text-decoration-none text-info"><i class="bi bi-truck-front-fill fs-2"></i><br><small>Fleet</small></a></div>
+                    <div class="col-4 col-md-2 mb-3"><a href="{{ url_for('training_dashboard') }}" class="text-decoration-none text-primary"><i class="bi bi-mortarboard-fill fs-2"></i><br><small>Training</small></a></div>
+                    <div class="col-4 col-md-2 mb-3"><a href="{{ url_for('asset_dashboard') }}" class="text-decoration-none text-secondary"><i class="bi bi-box-fill fs-2"></i><br><small>Assets</small></a></div>
+                    <div class="col-4 col-md-2 mb-3"><a href="{{ url_for('finance_dashboard') }}" class="text-decoration-none text-success"><i class="bi bi-wallet-fill fs-2"></i><br><small>Finance</small></a></div>
+                    <div class="col-4 col-md-2 mb-3"><a href="{{ url_for('station_ops_dashboard') }}" class="text-decoration-none text-dark"><i class="bi bi-building-fill fs-2"></i><br><small>Stations</small></a></div>
+                    <div class="col-4 col-md-2 mb-3"><a href="{{ url_for('disaster_dashboard') }}" class="text-decoration-none text-danger"><i class="bi bi-tornado fs-2"></i><br><small>Disaster</small></a></div>
+                    <div class="col-4 col-md-2 mb-3"><a href="{{ url_for('gis_dashboard') }}" class="text-decoration-none text-info"><i class="bi bi-map-fill fs-2"></i><br><small>GIS</small></a></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include "includes/leave_modal.html" %}
+{% endblock %}

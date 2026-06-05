@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+*.db
+uploads/
+server_stdout.txt
+server_stderr.txt
+stdout.txt
+stderr.txt
+.env
+venv/
+.venv/

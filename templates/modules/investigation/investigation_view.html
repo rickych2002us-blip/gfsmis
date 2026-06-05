@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% block title %}Case {{ inv.case_no }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-search"></i> {{ inv.case_no }}</h2>
+    <div>
+        <span class="badge bg-{{ 'warning' if inv.status == 'open' else 'success' if inv.status == 'closed' else 'secondary' }} fs-6 me-2">{{ inv.status|upper }}</span>
+        {% if inv.is_court_case %}<span class="badge bg-warning fs-6 me-2">Court Case</span>{% endif %}
+        <a href="{{ url_for('investigation_dashboard') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header bg-primary text-white"><i class="bi bi-info-circle"></i> Case Details</div>
+            <div class="card-body">
+                <div class="row mb-2"><div class="col-4 fw-bold">Title:</div><div class="col-8">{{ inv.title }}</div></div>
+                <div class="row mb-2"><div class="col-4 fw-bold">Lead Investigator:</div><div class="col-8">{{ inv.lead_investigator.first_name + ' ' + inv.lead_investigator.last_name if inv.lead_investigator else 'Unassigned' }}</div></div>
+                <div class="row mb-2"><div class="col-4 fw-bold">Related Incident:</div><div class="col-8">{{ inv.incident.incident_no if inv.incident else 'N/A' }}</div></div>
+                <div class="row mb-2"><div class="col-4 fw-bold">Origin:</div><div class="col-8">{{ inv.origin or 'Not yet determined' }}</div></div>
+                <div class="row mb-2"><div class="col-4 fw-bold">Cause:</div><div class="col-8">{{ inv.cause_determination or 'Under investigation' }}</div></div>
+                <div class="row mb-2"><div class="col-4 fw-bold">Cause Detail:</div><div class="col-8">{{ inv.cause_description or '-' }}</div></div>
+                <div class="row mb-2"><div class="col-4 fw-bold">Created:</div><div class="col-8">{{ inv.created_at.strftime('%Y-%m-%d %H:%M') if inv.created_at else '-' }}</div></div>
+                <div class="row mb-2"><div class="col-4 fw-bold">Closed:</div><div class="col-8">{{ inv.closed_at.strftime('%Y-%m-%d %H:%M') if inv.closed_at else '-' }}</div></div>
+                {% if inv.court_details %}
+                <div class="row mb-2"><div class="col-4 fw-bold">Court Details:</div><div class="col-8">{{ inv.court_details }}</div></div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if inv.status == 'open' %}
+        <div class="card mt-3">
+            <div class="card-header bg-primary text-white"><i class="bi bi-pencil-square"></i> Update Case</div>
+            <div class="card-body">
+                <form action="{{ url_for('investigation_update', id=inv.id) }}" method="POST">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Status</label>
+                            <select name="status" class="form-select">
+                                <option value="open" {{ 'selected' if inv.status == 'open' }}>Open</option>
+                                <option value="closed" {{ 'selected' if inv.status == 'closed' }}>Closed</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Cause Determination</label>
+                            <input type="text" name="cause_determination" class="form-control" value="{{ inv.cause_determination or '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Origin</label>
+                            <input type="text" name="origin" class="form-control" value="{{ inv.origin or '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check mt-4">
+                                <input type="checkbox" name="is_court_case" class="form-check-input" id="courtCase" {{ 'checked' if inv.is_court_case }}>
+                                <label class="form-check-label" for="courtCase">Court Case</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Cause Description</label>
+                            <textarea name="cause_description" class="form-control" rows="2">{{ inv.cause_description or '' }}</textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Court Details</label>
+                            <textarea name="court_details" class="form-control" rows="2">{{ inv.court_details or '' }}</textarea>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Update Case</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card mt-3">
+            <div class="card-header bg-primary text-white"><i class="bi bi-box"></i> Evidence</div>
+            <div class="card-body">
+                <form action="{{ url_for('investigation_evidence_add', id=inv.id) }}" method="POST" enctype="multipart/form-data" class="row g-2 mb-3">
+                    <div class="col-md-4">
+                        <input type="text" name="description" class="form-control" placeholder="Description" required>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="evidence_type" class="form-select">
+                            <option value="">Type...</option>
+                            <option value="Physical">Physical</option>
+                            <option value="Photographic">Photographic</option>
+                            <option value="Document">Document</option>
+                            <option value="Digital">Digital</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" name="location_found" class="form-control" placeholder="Location found">
+                    </div>
+                    <div class="col-md-4">
+                        <input type="text" name="storage_location" class="form-control" placeholder="Storage location">
+                    </div>
+                    <div class="col-md-4">
+                        <input type="file" name="file" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-plus"></i> Add Evidence</button>
+                    </div>
+                </form>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                            <tr><th>#</th><th>Description</th><th>Type</th><th>Collected By</th><th>Location Found</th><th>Storage</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for e in inv.evidences %}
+                            <tr>
+                                <td>{{ e.evidence_no }}</td>
+                                <td>{{ e.description }}</td>
+                                <td><span class="badge bg-info">{{ e.evidence_type or '-' }}</span></td>
+                                <td>{{ e.collected_by or '-' }}</td>
+                                <td>{{ e.location_found or '-' }}</td>
+                                <td>{{ e.storage_location or '-' }}</td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="6" class="text-muted text-center">No evidence recorded</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header bg-primary text-white"><i class="bi bi-person"></i> Witness Statements</div>
+            <div class="card-body">
+                <form action="{{ url_for('investigation_witness_add', id=inv.id) }}" method="POST" class="row g-2 mb-3">
+                    <div class="col-md-4">
+                        <input type="text" name="witness_name" class="form-control" placeholder="Witness name" required>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" name="witness_contact" class="form-control" placeholder="Contact">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" name="statement" class="form-control" placeholder="Statement" required>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-plus"></i> Add</button>
+                    </div>
+                </form>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                            <tr><th>Name</th><th>Contact</th><th>Statement</th><th>Recorded At</th><th>Signed</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for w in inv.witness_statements %}
+                            <tr>
+                                <td>{{ w.witness_name }}</td>
+                                <td>{{ w.witness_contact or '-' }}</td>
+                                <td>{{ w.statement|truncate(80) }}</td>
+                                <td>{{ w.recorded_at.strftime('%Y-%m-%d') if w.recorded_at else '-' }}</td>
+                                <td>
+                                    {% if w.signed %}
+                                    <span class="badge bg-success">Signed</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Pending</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" class="text-muted text-center">No witness statements</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header bg-primary text-white"><i class="bi bi-person-badge"></i> Investigator Info</div>
+            <div class="card-body">
+                {% if inv.lead_investigator %}
+                <div class="row mb-2"><div class="col-4 fw-bold">Name:</div><div class="col-8">{{ inv.lead_investigator.first_name }} {{ inv.lead_investigator.last_name }}</div></div>
+                <div class="row mb-2"><div class="col-4 fw-bold">Role:</div><div class="col-8">{{ inv.lead_investigator.role|title }}</div></div>
+                <div class="row mb-2"><div class="col-4 fw-bold">Email:</div><div class="col-8">{{ inv.lead_investigator.email }}</div></div>
+                {% else %}
+                <p class="text-muted mb-0">No lead investigator assigned</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card mt-3">
+            <div class="card-header bg-primary text-white"><i class="bi bi-info-circle"></i> Summary</div>
+            <div class="card-body">
+                <div class="row mb-2"><div class="col-6 fw-bold">Evidence Items:</div><div class="col-6">{{ inv.evidences|length }}</div></div>
+                <div class="row mb-2"><div class="col-6 fw-bold">Witnesses:</div><div class="col-6">{{ inv.witness_statements|length }}</div></div>
+                <div class="row mb-2"><div class="col-6 fw-bold">Court Case:</div><div class="col-6">{{ 'Yes' if inv.is_court_case else 'No' }}</div></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

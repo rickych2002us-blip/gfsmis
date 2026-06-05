@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Register for Training{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-info text-white"><i class="bi bi-mortarboard"></i> Register for Fire Safety Training</div>
+            <div class="card-body">
+                <p class="text-muted">Select a course and complete the form to register.</p>
+                <form action="{{ url_for('public_training_register') }}" method="POST">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">Course <span class="text-danger">*</span></label>
+                            <select name="course_id" class="form-select" required>
+                                <option value="">Select a course...</option>
+                                {% for c in courses %}
+                                <option value="{{ c.id }}">{{ c.title }} ({{ c.code }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Full Name <span class="text-danger">*</span></label>
+                            <input type="text" name="full_name" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Phone</label>
+                            <input type="text" name="phone" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Organization</label>
+                            <input type="text" name="organization" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-info text-white"><i class="bi bi-check"></i> Register</button>
+                            <a href="{{ url_for('public_portal') }}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

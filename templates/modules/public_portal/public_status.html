@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Check Status{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white"><i class="bi bi-search"></i> Check Application Status</div>
+            <div class="card-body">
+                <p class="text-muted">Enter your reference number to check the status of your application.</p>
+                <form action="{{ url_for('public_status') }}" method="GET" class="row g-2">
+                    <div class="col-md-8">
+                        <input type="text" name="reference" class="form-control" placeholder="Reference Number (e.g. FC-XXXXXXXX)" value="{{ request.args.get('reference', '') }}">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-success w-100"><i class="bi bi-search"></i> Search</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if request.args.get('reference') %}
+        <div class="card">
+            <div class="card-header bg-danger text-white"><i class="bi bi-info-circle"></i> Status Result</div>
+            <div class="card-body">
+                {% if cert %}
+                <table class="table table-bordered">
+                    <tr><th>Reference</th><td>{{ cert.certificate_no }}</td></tr>
+                    <tr><th>Type</th><td>Fire Certificate</td></tr>
+                    <tr><th>Applicant</th><td>{{ cert.applicant_name }}</td></tr>
+                    <tr><th>Business</th><td>{{ cert.business_name or '-' }}</td></tr>
+                    <tr><th>Status</th>
+                        <td>
+                            <span class="badge bg-{{ 'success' if cert.status == 'approved' else 'warning' if cert.status == 'pending' else 'danger' }}">
+                                {{ cert.status }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr><th>Submitted</th><td>{{ cert.created_at.strftime('%Y-%m-%d') if cert.created_at else '-' }}</td></tr>
+                    {% if cert.issue_date %}
+                    <tr><th>Issue Date</th><td>{{ cert.issue_date.strftime('%Y-%m-%d') }}</td></tr>
+                    {% endif %}
+                </table>
+                {% elif complaint %}
+                <table class="table table-bordered">
+                    <tr><th>Reference</th><td>{{ complaint.id }}</td></tr>
+                    <tr><th>Type</th><td>Public Complaint</td></tr>
+                    <tr><th>Subject</th><td>{{ complaint.subject }}</td></tr>
+                    <tr><th>Status</th>
+                        <td>
+                            <span class="badge bg-{{ 'warning' if complaint.status == 'submitted' else 'info' if complaint.status == 'acknowledged' else 'primary' if complaint.status == 'investigating' else 'success' if complaint.status == 'resolved' else 'secondary' }}">
+                                {{ complaint.status }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr><th>Submitted</th><td>{{ complaint.created_at.strftime('%Y-%m-%d') if complaint.created_at else '-' }}</td></tr>
+                </table>
+                {% else %}
+                <p class="text-muted text-center mb-0">No record found for reference <strong>{{ request.args.get('reference') }}</strong>.</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Public Complaints{% endblock %}
+{% block content %}
+<div class="mb-4">
+    <h2><i class="bi bi-megaphone"></i> Public Complaints</h2>
+</div>
+
+<div class="card">
+    <div class="card-header bg-danger text-white"><i class="bi bi-list"></i> Complaints ({{ complaints|length }})</div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Name</th>
+                        <th>Subject</th>
+                        <th>Type</th>
+                        <th>Region</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in complaints %}
+                    <tr>
+                        <td>{{ c.name or 'Anonymous' }}</td>
+                        <td>{{ c.subject[:50] + '...' if c.subject|length > 50 else c.subject }}</td>
+                        <td><span class="badge bg-info">{{ c.complaint_type or '-' }}</span></td>
+                        <td>{{ c.region or '-' }}</td>
+                        <td>
+                            <span class="badge bg-{{ 'warning' if c.status == 'submitted' else 'info' if c.status == 'acknowledged' else 'primary' if c.status == 'investigating' else 'success' if c.status == 'resolved' else 'secondary' }}">
+                                {{ c.status }}
+                            </span>
+                        </td>
+                        <td>{{ c.created_at.strftime('%Y-%m-%d') if c.created_at else '-' }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-danger" data-bs-toggle="collapse" data-bs-target="#complaintForm{{ c.id }}"><i class="bi bi-pencil"></i></button>
+                        </td>
+                    </tr>
+                    <tr class="collapse" id="complaintForm{{ c.id }}">
+                        <td colspan="7" class="bg-light p-3">
+                            <form action="{{ url_for('complaint_update', id=c.id) }}" method="POST" class="row g-2">
+                                <div class="col-md-3">
+                                    <label class="form-label">Status</label>
+                                    <select name="status" class="form-select form-select-sm">
+                                        <option value="submitted" {{ 'selected' if c.status == 'submitted' }}>Submitted</option>
+                                        <option value="acknowledged" {{ 'selected' if c.status == 'acknowledged' }}>Acknowledged</option>
+                                        <option value="investigating" {{ 'selected' if c.status == 'investigating' }}>Investigating</option>
+                                        <option value="resolved" {{ 'selected' if c.status == 'resolved' }}>Resolved</option>
+                                        <option value="closed" {{ 'selected' if c.status == 'closed' }}>Closed</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Assigned To (User ID)</label>
+                                    <input type="number" name="assigned_to" class="form-control form-control-sm" value="{{ c.assigned_to or '' }}" min="1">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Resolution</label>
+                                    <input type="text" name="resolution" class="form-control form-control-sm" value="{{ c.resolution or '' }}">
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-sm btn-danger"><i class="bi bi-check"></i> Update</button>
+                                </div>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="7" class="text-center text-muted py-3">No complaints found</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

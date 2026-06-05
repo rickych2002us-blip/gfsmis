@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Hazard Reports{% endblock %}
+{% block content %}
+<div class="mb-4">
+    <h2><i class="bi bi-exclamation-triangle"></i> Hazard Reports</h2>
+</div>
+
+<div class="card">
+    <div class="card-header bg-danger text-white"><i class="bi bi-list"></i> Hazard Reports ({{ hazards|length }})</div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Reporter</th>
+                        <th>Location</th>
+                        <th>Hazard Type</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for h in hazards %}
+                    <tr>
+                        <td>{{ h.reporter_name or 'Anonymous' }}</td>
+                        <td>{{ h.location }}</td>
+                        <td><span class="badge bg-info">{{ h.hazard_type or '-' }}</span></td>
+                        <td>
+                            <span class="badge bg-{{ 'warning' if h.status == 'submitted' else 'info' if h.status == 'acknowledged' else 'primary' if h.status == 'investigating' else 'success' if h.status == 'resolved' else 'secondary' }}">
+                                {{ h.status }}
+                            </span>
+                        </td>
+                        <td>{{ h.created_at.strftime('%Y-%m-%d') if h.created_at else '-' }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-danger" data-bs-toggle="collapse" data-bs-target="#hazardForm{{ h.id }}"><i class="bi bi-pencil"></i></button>
+                        </td>
+                    </tr>
+                    <tr class="collapse" id="hazardForm{{ h.id }}">
+                        <td colspan="6" class="bg-light p-3">
+                            <form action="{{ url_for('hazard_update', id=h.id) }}" method="POST" class="row g-2">
+                                <div class="col-md-3">
+                                    <label class="form-label">Status</label>
+                                    <select name="status" class="form-select form-select-sm">
+                                        <option value="submitted" {{ 'selected' if h.status == 'submitted' }}>Submitted</option>
+                                        <option value="acknowledged" {{ 'selected' if h.status == 'acknowledged' }}>Acknowledged</option>
+                                        <option value="investigating" {{ 'selected' if h.status == 'investigating' }}>Investigating</option>
+                                        <option value="resolved" {{ 'selected' if h.status == 'resolved' }}>Resolved</option>
+                                        <option value="closed" {{ 'selected' if h.status == 'closed' }}>Closed</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Assigned To (User ID)</label>
+                                    <input type="number" name="assigned_to" class="form-control form-control-sm" value="{{ h.assigned_to or '' }}" min="1">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Action Taken</label>
+                                    <input type="text" name="action_taken" class="form-control form-control-sm" value="{{ h.action_taken or '' }}">
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-sm btn-danger"><i class="bi bi-check"></i> Update</button>
+                                </div>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" class="text-center text-muted py-3">No hazard reports found</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

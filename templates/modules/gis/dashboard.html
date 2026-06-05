@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+{% block title %}GIS & Mapping{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-map"></i> GIS & Mapping</h2>
+    <div>
+        <button class="btn btn-danger" data-bs-toggle="collapse" data-bs-target="#addHydrantForm"><i class="bi bi-droplet"></i> Add Hydrant</button>
+        <button class="btn btn-outline-danger" data-bs-toggle="collapse" data-bs-target="#addRiskZoneForm"><i class="bi bi-exclamation-triangle"></i> Add Risk Zone</button>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-danger text-white"><i class="bi bi-map"></i> Hydrant Map</div>
+    <div class="card-body p-0">
+        <div id="hydrantMap" style="height:400px;"></div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+var map = L.map('hydrantMap').setView([6.8, -58.2], 8);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+var hydrants = {{ hydrant_data|tojson|safe }};
+hydrants.forEach(function(h) {
+    if (h.latitude && h.longitude) {
+        L.marker([h.latitude, h.longitude]).addTo(map)
+            .bindPopup('<b>' + h.hydrant_no + '</b><br>' + (h.location || '') + '<br>Flow: ' + (h.flow_rate || 'N/A') + ' GPM');
+    }
+});
+
+if (hydrants.length > 0) {
+    var coords = hydrants.filter(function(h) { return h.latitude && h.longitude; });
+    if (coords.length > 0) {
+        var group = L.featureGroup(coords.map(function(h) { return L.marker([h.latitude, h.longitude]); }));
+        map.fitBounds(group.getBounds().pad(0.1));
+    }
+}
+</script>
+
+<div class="collapse mb-4" id="addHydrantForm">
+    <div class="card">
+        <div class="card-header bg-danger text-white"><i class="bi bi-droplet"></i> Add Hydrant</div>
+        <div class="card-body">
+            <form action="{{ url_for('hydrant_new') }}" method="POST">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Hydrant No <span class="text-danger">*</span></label>
+                        <input type="text" name="hydrant_no" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Location</label>
+                        <input type="text" name="location" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Region</label>
+                        <select name="region" class="form-select">
+                            {% for val, label in REGIONS %}
+                            <option value="{{ val }}" {% if not val %}disabled{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Latitude</label>
+                        <input type="number" name="latitude" class="form-control" step="any">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Longitude</label>
+                        <input type="number" name="longitude" class="form-control" step="any">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Flow Rate (GPM)</label>
+                        <input type="number" name="flow_rate" class="form-control" step="0.1" min="0">
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-danger"><i class="bi bi-check"></i> Save Hydrant</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="collapse mb-4" id="addRiskZoneForm">
+    <div class="card">
+        <div class="card-header bg-danger text-white"><i class="bi bi-exclamation-triangle"></i> Add Risk Zone</div>
+        <div class="card-body">
+            <form action="{{ url_for('risk_zone_new') }}" method="POST">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Zone Name <span class="text-danger">*</span></label>
+                        <input type="text" name="zone_name" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Region</label>
+                        <select name="region" class="form-select">
+                            {% for val, label in REGIONS %}
+                            <option value="{{ val }}" {% if not val %}disabled{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Risk Level</label>
+                        <select name="risk_level" class="form-select">
+                            <option value="">Select...</option>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                            <option value="critical">Critical</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Population Density</label>
+                        <input type="number" name="population_density" class="form-control" min="0">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Notes</label>
+                        <textarea name="notes" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-danger"><i class="bi bi-check"></i> Save Risk Zone</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-danger text-white"><i class="bi bi-droplet"></i> Hydrants ({{ hydrants|length }})</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr><th>Hydrant No</th><th>Location</th><th>Region</th><th>Latitude</th><th>Longitude</th><th>Flow Rate</th><th>Map</th><th></th></tr>
+                        </thead>
+                        <tbody>
+                            {% for h in hydrants %}
+                            <tr>
+                                <td>{{ h.hydrant_no }}</td>
+                                <td>{{ h.location or '-' }}</td>
+                                <td>{{ h.region or '-' }}</td>
+                                <td>{{ h.latitude or '-' }}</td>
+                                <td>{{ h.longitude or '-' }}</td>
+                                <td>{{ h.flow_rate or '-' }}</td>
+                                <td>
+                                    <a href="https://www.google.com/maps?q={{ h.latitude }},{{ h.longitude }}" target="_blank" class="btn btn-sm btn-outline-success">
+                                        <i class="bi bi-geo-alt"></i>
+                                    </a>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#editHydrant{{ h.id }}">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="collapse" id="editHydrant{{ h.id }}">
+                                <td colspan="8" class="p-3 bg-light">
+                                    <form action="{{ url_for('hydrant_edit', id=h.id) }}" method="POST">
+                                        <div class="row g-2">
+                                            <div class="col-md-3">
+                                                <label class="form-label">Hydrant No</label>
+                                                <input type="text" name="hydrant_no" class="form-control form-control-sm" value="{{ h.hydrant_no }}" required>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label">Location</label>
+                                                <input type="text" name="location" class="form-control form-control-sm" value="{{ h.location or '' }}">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label">Region</label>
+                                                <select name="region" class="form-select form-select-sm">
+                                                    {% for val, label in REGIONS %}
+                                                    <option value="{{ val }}" {% if val == h.region %}selected{% endif %} {% if not val %}disabled{% endif %}>{{ label }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="col-md-1">
+                                                <label class="form-label">Lat</label>
+                                                <input type="number" step="any" name="latitude" class="form-control form-control-sm" value="{{ h.latitude }}">
+                                            </div>
+                                            <div class="col-md-1">
+                                                <label class="form-label">Lng</label>
+                                                <input type="number" step="any" name="longitude" class="form-control form-control-sm" value="{{ h.longitude }}">
+                                            </div>
+                                            <div class="col-md-1">
+                                                <label class="form-label">Flow</label>
+                                                <input type="number" step="0.1" name="flow_rate" class="form-control form-control-sm" value="{{ h.flow_rate or '' }}">
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="form-label">Status</label>
+                                                <select name="status" class="form-select form-select-sm">
+                                                    <option value="active" {{ 'selected' if h.status == 'active' }}>Active</option>
+                                                    <option value="inactive" {{ 'selected' if h.status == 'inactive' }}>Inactive</option>
+                                                    <option value="maintenance" {{ 'selected' if h.status == 'maintenance' }}>Maintenance</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-12 mt-2">
+                                                <button type="submit" class="btn btn-sm btn-danger"><i class="bi bi-check"></i> Update</button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#editHydrant{{ h.id }}">Cancel</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="8" class="text-center text-muted py-3">No hydrants</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-danger text-white"><i class="bi bi-exclamation-triangle"></i> Risk Zones ({{ risk_zones|length }})</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr><th>Zone Name</th><th>Region</th><th>Risk Level</th><th>Population Density</th><th>Notes</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for z in risk_zones %}
+                            <tr>
+                                <td>{{ z.zone_name }}</td>
+                                <td>{{ z.region or '-' }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'danger' if z.risk_level == 'critical' else 'warning' if z.risk_level == 'high' else 'primary' if z.risk_level == 'medium' else 'secondary' }}">
+                                        {{ z.risk_level or '-' }}
+                                    </span>
+                                </td>
+                                <td>{{ z.population_density or '-' }}</td>
+                                <td>{{ z.notes[:50] + '...' if z.notes and z.notes|length > 50 else z.notes or '-' }}</td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" class="text-center text-muted py-3">No risk zones</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-danger text-white"><i class="bi bi-geo-alt"></i> Mapped Incidents with Coordinates</div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr><th>Incident No</th><th>Type</th><th>Location</th><th>Latitude</th><th>Longitude</th><th>Severity</th><th>Status</th><th>Map</th></tr>
+                </thead>
+                <tbody>
+                    {% for inc in incidents %}
+                    <tr>
+                        <td>{{ inc.incident_no }}</td>
+                        <td>{{ inc.incident_type }}</td>
+                        <td>{{ inc.location }}</td>
+                        <td>{{ inc.latitude }}</td>
+                        <td>{{ inc.longitude }}</td>
+                        <td>
+                            <span class="badge bg-{{ 'danger' if inc.severity == 'critical' else 'warning' if inc.severity == 'high' else 'primary' if inc.severity == 'medium' else 'secondary' }}">
+                                {{ inc.severity or '-' }}
+                            </span>
+                        </td>
+                        <td><span class="badge bg-{{ 'danger' if inc.status == 'active' else 'success' if inc.status == 'resolved' else 'secondary' }}">{{ inc.status }}</span></td>
+                        <td>
+                            <a href="https://www.google.com/maps?q={{ inc.latitude }},{{ inc.longitude }}" target="_blank" class="btn btn-sm btn-outline-success">
+                                <i class="bi bi-geo-alt"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="8" class="text-center text-muted py-3">No incidents with coordinates</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

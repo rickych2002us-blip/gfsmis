@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}Employees{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-people"></i> Employees</h2>
+    <div>
+        <a href="{{ url_for('hr_employee_new') }}" class="btn btn-danger"><i class="bi bi-plus-circle"></i> New Employee</a>
+        <a href="{{ url_for('hr_dashboard') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-danger text-white"><i class="bi bi-people"></i> All Employees</div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Photo</th>
+                        <th>Username</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Position</th>
+                        <th>Station</th>
+                        <th>Region</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for e in employees %}
+                    <tr>
+                        <td>
+                            {% if e.photo %}
+                            <img src="{{ url_for('static', filename='../' + e.photo) }}" class="rounded" style="width:40px;height:40px;object-fit:cover;" alt="photo">
+                            {% else %}
+                            <i class="bi bi-person-circle fs-4 text-muted"></i>
+                            {% endif %}
+                        </td>
+                        <td>{{ e.username }}</td>
+                        <td>{{ e.first_name }} {{ e.last_name }}</td>
+                        <td>{{ e.email }}</td>
+                        <td><span class="badge bg-info">{{ e.role }}</span></td>
+                        <td>{{ e.position or '-' }}</td>
+                        <td>{{ e.station.name if e.station else '-' }}</td>
+                        <td>{{ e.region or '-' }}</td>
+                        <td>{{ e.phone or '-' }}</td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if e.is_active else 'secondary' }}">
+                                {{ 'Active' if e.is_active else 'Inactive' }}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#editEmployee{{ e.id }}">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr class="collapse" id="editEmployee{{ e.id }}">
+                        <td colspan="11" class="p-3 bg-light">
+                            <form action="{{ url_for('hr_employee_edit', id=e.id) }}" method="POST" enctype="multipart/form-data">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label">First Name</label>
+                                        <input type="text" name="first_name" class="form-control" value="{{ e.first_name }}">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Last Name</label>
+                                        <input type="text" name="last_name" class="form-control" value="{{ e.last_name }}">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Email</label>
+                                        <input type="email" name="email" class="form-control" value="{{ e.email }}">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Phone</label>
+                                        <input type="text" name="phone" class="form-control" value="{{ e.phone or '' }}">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Photo</label>
+                                        <input type="file" name="photo" class="form-control" accept="image/*">
+                                        {% if e.photo %}
+                                        <small class="text-muted">Leave blank to keep current</small>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Region</label>
+                                        <select name="region" class="form-select">
+                                            {% for val, label in REGIONS %}
+                                            <option value="{{ val }}" {% if val == e.region %}selected{% endif %} {% if not val %}disabled{% endif %}>{{ label }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Position</label>
+                                        <input type="text" name="position" class="form-control" value="{{ e.position or '' }}">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Role</label>
+                                        <select name="role" class="form-select">
+                                            <option value="admin" {{ 'selected' if e.role == 'admin' }}>Admin</option>
+                                            <option value="supervisor" {{ 'selected' if e.role == 'supervisor' }}>Supervisor</option>
+                                            <option value="inspector" {{ 'selected' if e.role == 'inspector' }}>Inspector</option>
+                                            <option value="officer" {{ 'selected' if e.role == 'officer' }}>Officer</option>
+                                            <option value="staff" {{ 'selected' if e.role == 'staff' }}>Staff</option>
+                                            <option value="finance" {{ 'selected' if e.role == 'finance' }}>Finance</option>
+                                            <option value="trainer" {{ 'selected' if e.role == 'trainer' }}>Trainer</option>
+                                            <option value="executive" {{ 'selected' if e.role == 'executive' }}>Executive</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Station</label>
+                                        <select name="station_id" class="form-select">
+                                            <option value="">Select...</option>
+                                            {% for s in stations %}
+                                            <option value="{{ s.id }}" {{ 'selected' if e.station_id == s.id }}>{{ s.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check mt-4">
+                                            <input type="checkbox" name="is_active" class="form-check-input" id="active{{ e.id }}" {{ 'checked' if e.is_active }}>
+                                            <label class="form-check-label" for="active{{ e.id }}">Active</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <button type="submit" class="btn btn-danger"><i class="bi bi-check"></i> Update</button>
+                                        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#editEmployee{{ e.id }}">Cancel</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="11" class="text-center text-muted py-3">No employees found</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

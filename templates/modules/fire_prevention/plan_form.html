@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Submit Building Plan{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-danger text-white"><i class="bi bi-building"></i> Submit Building Plan</div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('building_plan_new') }}" enctype="multipart/form-data">
+                    <h5 class="text-danger"><i class="bi bi-info-circle"></i> Project Information</h5>
+                    <hr>
+                    <div class="mb-3">
+                        <label class="form-label">Project Name <span class="text-danger">*</span></label>
+                        <input type="text" name="project_name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Applicant Name <span class="text-danger">*</span></label>
+                        <input type="text" name="applicant_name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Applicant Email</label>
+                        <input type="email" name="applicant_email" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Address</label>
+                        <textarea name="address" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Plan File (PDF, DWG, PNG, JPG)</label>
+                        <input type="file" name="plan_file" class="form-control" accept=".pdf,.dwg,.png,.jpg,.jpeg">
+                    </div>
+                    <button type="submit" class="btn btn-danger w-100"><i class="bi bi-upload"></i> Submit Plan</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

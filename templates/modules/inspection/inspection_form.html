@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Schedule Inspection{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white"><i class="bi bi-calendar-plus"></i> Schedule New Inspection</div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('inspection_new') }}" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label">Property Name <span class="text-danger">*</span></label>
+                        <input type="text" name="property_name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Property Address</label>
+                        <textarea name="property_address" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Photo</label>
+                        <input type="file" name="photo" class="form-control" accept="image/*">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Region</label>
+                        <select name="region" class="form-select">
+                            {% for val, label in REGIONS %}
+                            <option value="{{ val }}" {% if not val %}disabled{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label class="form-label">Property Type</label>
+                            <select name="property_type" class="form-select">
+                                <option value="">-- Select --</option>
+                                <option value="Commercial">Commercial</option>
+                                <option value="Residential">Residential</option>
+                                <option value="Industrial">Industrial</option>
+                                <option value="Government">Government</option>
+                            </select>
+                        </div>
+                        <div class="col">
+                            <label class="form-label">Inspection Type <span class="text-danger">*</span></label>
+                            <select name="inspection_type" class="form-select" required>
+                                <option value="">-- Select --</option>
+                                <option value="Routine">Routine</option>
+                                <option value="Follow-up">Follow-up</option>
+                                <option value="Complaint">Complaint</option>
+                                <option value="Annual">Annual</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label class="form-label">Inspector</label>
+                            <select name="inspector_id" class="form-select">
+                                <option value="">-- Select Inspector --</option>
+                                {% for inspector in inspectors %}
+                                <option value="{{ inspector.id }}">{{ inspector.first_name }} {{ inspector.last_name }} ({{ inspector.role }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col">
+                            <label class="form-label">Scheduled Date & Time <span class="text-danger">*</span></label>
+                            <input type="datetime-local" name="scheduled_date" class="form-control" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-check-circle"></i> Schedule Inspection</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

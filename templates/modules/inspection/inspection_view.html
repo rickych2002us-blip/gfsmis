@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{% block title %}Inspection {{ insp.inspection_no }}{% endblock %}
+{% block content %}
+<div class="row g-3">
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-clipboard-check"></i> Inspection {{ insp.inspection_no }}
+                <span class="badge bg-{{ 'success' if insp.status == 'completed' else 'warning' }} float-end">{{ insp.status|upper }}</span>
+            </div>
+            <div class="card-body">
+                <div class="row mb-2"><div class="col-4 fw-bold">Property:</div><div class="col-8">{{ insp.property_name }}</div></div>
+                <div class="row mb-2"><div class="col-4 fw-bold">Address:</div><div class="col-8">{{ insp.property_address or '-' }}</div></div>
+                <div class="row mb-2"><div class="col-4 fw-bold">Type:</div><div class="col-8">{{ insp.property_type or '-' }}</div></div>
+                <div class="row mb-2"><div class="col-4 fw-bold">Inspection Type:</div><div class="col-8">{{ insp.inspection_type or '-' }}</div></div>
+                <div class="row mb-2"><div class="col-4 fw-bold">Inspector:</div><div class="col-8">{{ insp.inspector.first_name + ' ' + insp.inspector.last_name if insp.inspector else 'Unassigned' }}</div></div>
+                <div class="row mb-2"><div class="col-4 fw-bold">Scheduled:</div><div class="col-8">{{ insp.scheduled_date.strftime('%Y-%m-%d %H:%M') if insp.scheduled_date else '-' }}</div></div>
+                <div class="row mb-2"><div class="col-4 fw-bold">Conducted:</div><div class="col-8">{{ insp.conducted_date.strftime('%Y-%m-%d %H:%M') if insp.conducted_date else '-' }}</div></div>
+            </div>
+        </div>
+
+        {% if insp.status == 'scheduled' %}
+        <div class="card mt-3">
+            <div class="card-header bg-primary text-white"><i class="bi bi-pencil-square"></i> Conduct Inspection</div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('inspection_conduct', id=insp.id) }}">
+                    <div class="mb-3">
+                        <label class="form-label">Findings</label>
+                        <textarea name="findings" class="form-control" rows="3">{{ insp.findings or '' }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Recommendations</label>
+                        <textarea name="recommendations" class="form-control" rows="3">{{ insp.recommendations or '' }}</textarea>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label class="form-label">Compliance Status</label>
+                            <select name="compliance_status" class="form-select">
+                                <option value="">-- Select --</option>
+                                <option value="compliant">Compliant</option>
+                                <option value="non_compliant">Non-Compliant</option>
+                                <option value="partial">Partially Compliant</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <div class="form-check">
+                                <input type="checkbox" name="follow_up_required" class="form-check-input" id="followUpCheck">
+                                <label class="form-check-label" for="followUpCheck">Follow-up Required</label>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <label class="form-label">Follow-up Date</label>
+                            <input type="date" name="follow_up_date" class="form-control">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-check-circle"></i> Complete Inspection</button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card mt-3">
+            <div class="card-header bg-primary text-white"><i class="bi bi-list-check"></i> Checklist Items</div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('inspection_checklist_add', id=insp.id) }}" class="row g-2 mb-3">
+                    <div class="col-md-5">
+                        <input type="text" name="item_name" class="form-control" placeholder="Item name" required>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-check mt-2">
+                            <input type="checkbox" name="is_compliant" class="form-check-input" id="checkCompliant">
+                            <label class="form-check-label" for="checkCompliant">Compliant</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" name="remarks" class="form-control" placeholder="Remarks">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-plus"></i> Add</button>
+                    </div>
+                </form>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                            <tr><th>Item</th><th>Compliant</th><th>Remarks</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for item in insp.checklist_items %}
+                            <tr>
+                                <td>{{ item.item_name }}</td>
+                                <td>
+                                    {% if item.is_compliant %}
+                                    <span class="badge bg-success">Yes</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">No</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ item.remarks or '-' }}</td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="3" class="text-muted text-center">No checklist items</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header bg-primary text-white"><i class="bi bi-exclamation-triangle"></i> Violations</div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('inspection_violation_add', id=insp.id) }}" class="row g-2 mb-3">
+                    <div class="col-md-3">
+                        <input type="text" name="violation_code" class="form-control" placeholder="Code">
+                    </div>
+                    <div class="col-md-4">
+                        <input type="text" name="description" class="form-control" placeholder="Description" required>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="severity" class="form-select">
+                            <option value="">Severity</option>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                            <option value="critical">Critical</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-plus"></i> Add</button>
+                    </div>
+                </form>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                            <tr><th>Code</th><th>Description</th><th>Severity</th><th>Status</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for v in insp.violations %}
+                            <tr>
+                                <td>{{ v.violation_code or '-' }}</td>
+                                <td>{{ v.description }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'danger' if v.severity == 'critical' else 'warning' if v.severity == 'high' else 'secondary' }}">
+                                        {{ v.severity or '-' }}
+                                    </span>
+                                </td>
+                                <td>{{ v.status }}</td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="4" class="text-muted text-center">No violations</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header bg-primary text-white"><i class="bi bi-camera"></i> Photos</div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('inspection_photo_upload', id=insp.id) }}" enctype="multipart/form-data" class="row g-2 mb-3">
+                    <div class="col-md-5">
+                        <input type="file" name="photo" class="form-control" accept="image/*" required>
+                    </div>
+                    <div class="col-md-5">
+                        <input type="text" name="caption" class="form-control" placeholder="Caption">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-upload"></i> Upload</button>
+                    </div>
+                </form>
+                <div class="row g-2">
+                    {% for photo in insp.photos %}
+                    <div class="col-md-4">
+                        <div class="card">
+                            <img src="{{ url_for('static', filename='uploads/' + photo.filepath) if photo.filepath else '' }}" class="card-img-top" alt="{{ photo.caption or 'Photo' }}">
+                            {% if photo.caption %}
+                            <div class="card-body p-1"><small class="text-muted">{{ photo.caption }}</small></div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">No photos uploaded</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header bg-primary text-white"><i class="bi bi-person-badge"></i> Inspector Info</div>
+            <div class="card-body">
+                {% if insp.inspector %}
+                <div class="row mb-2"><div class="col-4 fw-bold">Name:</div><div class="col-8">{{ insp.inspector.first_name }} {{ insp.inspector.last_name }}</div></div>
+                <div class="row mb-2"><div class="col-4 fw-bold">Role:</div><div class="col-8">{{ insp.inspector.role|title }}</div></div>
+                <div class="row mb-2"><div class="col-4 fw-bold">Email:</div><div class="col-8">{{ insp.inspector.email }}</div></div>
+                <div class="row mb-2"><div class="col-4 fw-bold">Phone:</div><div class="col-8">{{ insp.inspector.phone or '-' }}</div></div>
+                {% else %}
+                <p class="text-muted mb-0">No inspector assigned</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card mt-3">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-info-circle"></i> Summary
+            </div>
+            <div class="card-body">
+                <div class="row mb-2"><div class="col-6 fw-bold">Checklist Items:</div><div class="col-6">{{ insp.checklist_items|length }}</div></div>
+                <div class="row mb-2"><div class="col-6 fw-bold">Violations:</div><div class="col-6">{{ insp.violations|length }}</div></div>
+                <div class="row mb-2"><div class="col-6 fw-bold">Photos:</div><div class="col-6">{{ insp.photos|length }}</div></div>
+                {% if insp.compliance_status %}
+                <div class="row mb-2"><div class="col-6 fw-bold">Compliance:</div><div class="col-6"><span class="badge bg-{{ 'success' if insp.compliance_status == 'compliant' else 'danger' }}">{{ insp.compliance_status }}</span></div></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

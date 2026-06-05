@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}System Admin{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-gear-wide-connected"></i> System Administration</h2>
+    <div>
+        <a href="{{ url_for('system_admin_users') }}" class="btn btn-danger"><i class="bi bi-people"></i> Users & Roles</a>
+        <a href="{{ url_for('system_admin_user_create') }}" class="btn btn-outline-danger"><i class="bi bi-person-plus"></i> Create User</a>
+        <a href="{{ url_for('system_admin_stations') }}" class="btn btn-outline-danger"><i class="bi bi-building"></i> Stations</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-primary text-primary h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-people fs-1"></i>
+                <h3>{{ stats.total_users }}</h3>
+                <p class="mb-0">Total Users</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-success text-success h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-person-check fs-1"></i>
+                <h3>{{ stats.active_users }}</h3>
+                <p class="mb-0">Active Users</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-info text-info h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-building fs-1"></i>
+                <h3>{{ stats.stations }}</h3>
+                <p class="mb-0">Stations</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-warning text-warning h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-shield-lock fs-1"></i>
+                <h3>{{ stats.roles|length }}</h3>
+                <p class="mb-0">Roles</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-danger text-white"><i class="bi bi-shield"></i> Users by Role</div>
+            <div class="card-body">
+                <table class="table table-sm mb-0">
+                    <thead class="table-light">
+                        <tr><th>Role</th><th>Count</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for role, count in stats.roles %}
+                        <tr>
+                            <td><span class="badge bg-info">{{ role }}</span></td>
+                            <td>{{ count }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="2" class="text-muted text-center">No users</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-danger text-white"><i class="bi bi-clock-history"></i> Recent Users</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr><th>Username</th><th>Name</th><th>Role</th><th>Created</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for u in recent_users %}
+                            <tr>
+                                <td>{{ u.username }}</td>
+                                <td>{{ u.first_name }} {{ u.last_name }}</td>
+                                <td><span class="badge bg-info">{{ u.role }}</span></td>
+                                <td>{{ u.created_at.strftime('%Y-%m-%d') if u.created_at else '-' }}</td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="4" class="text-center text-muted py-3">No users</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
