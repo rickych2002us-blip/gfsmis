@@ -21,6 +21,7 @@ from flask_login import (
     login_required,
     current_user,
 )
+from sqlalchemy.exc import IntegrityError
 from werkzeug.utils import secure_filename
 
 from config import Config
@@ -1670,19 +1671,44 @@ def server_error(e):
 # INIT & SEED
 # ────────────────────────────────────────────────────────────
 
+def get_or_create(model, lookup, defaults=None):
+    inst = model.query.filter_by(**lookup).first()
+    if inst:
+        return inst
+    inst = model(**lookup, **(defaults or {}))
+    db.session.add(inst)
+    try:
+        db.session.flush()
+    except IntegrityError:
+        db.session.rollback()
+        inst = model.query.filter_by(**lookup).first()
+    return inst
+
 def seed_database():
-    if User.query.first():
+    if User.query.first() and Station.query.first():
         return
 
-    stations = [
-        Station(name="Georgetown Central Fire Station", code="GT-CENTRAL", address="Main Street, Georgetown", city="Georgetown", country="Guyana", region="Region 4 - Demerara-Mahaica", phone="225-1111", latitude=6.8013, longitude=-58.1553),
-        Station(name="Linden Fire Station", code="LIN", address="Mackenzie, Linden", city="Linden", country="Guyana", region="Region 10 - Upper Demerara-Berbice", phone="444-2222", latitude=6.0022, longitude=-58.3072),
-        Station(name="New Amsterdam Fire Station", code="NAM", address="New Amsterdam", city="New Amsterdam", country="Guyana", region="Region 6 - East Berbice-Corentyne", phone="333-3333", latitude=6.2500, longitude=-57.5167),
-    ]
-    db.session.add_all(stations)
+    get_or_create(Station, dict(code="GT-CENTRAL"), dict(
+        name="Georgetown Central Fire Station",
+        address="Main Street, Georgetown", city="Georgetown",
+        country="Guyana", region="Region 4 - Demerara-Mahaica",
+        phone="225-1111", latitude=6.8013, longitude=-58.1553,
+    ))
+    get_or_create(Station, dict(code="LIN"), dict(
+        name="Linden Fire Station",
+        address="Mackenzie, Linden", city="Linden",
+        country="Guyana", region="Region 10 - Upper Demerara-Berbice",
+        phone="444-2222", latitude=6.0022, longitude=-58.3072,
+    ))
+    get_or_create(Station, dict(code="NAM"), dict(
+        name="New Amsterdam Fire Station",
+        address="New Amsterdam", city="New Amsterdam",
+        country="Guyana", region="Region 6 - East Berbice-Corentyne",
+        phone="333-3333", latitude=6.2500, longitude=-57.5167,
+    ))
     db.session.commit()
 
-    users = [
+    for username, email, fn, ln, role, pos, sid in [
         ("admin", "admin@gfsmis.gov.gy", "Admin", "User", "admin", "Administrator", 1),
         ("inspector1", "inspector1@gfsmis.gov.gy", "John", "Doe", "inspector", "Fire Inspector", 1),
         ("officer1", "officer1@gfsmis.gov.gy", "Jane", "Smith", "officer", "Fire Officer", 1),
@@ -1691,19 +1717,17 @@ def seed_database():
         ("supervisor1", "supervisor1@gfsmis.gov.gy", "Mike", "Wilson", "supervisor", "Station Supervisor", 1),
         ("staff1", "staff1@gfsmis.gov.gy", "Lisa", "Taylor", "staff", "Firefighter", 2),
         ("exec1", "exec1@gfsmis.gov.gy", "Robert", "Davis", "executive", "Chief Fire Officer", 1),
-    ]
-    for username, email, fn, ln, role, pos, sid in users:
-        u = User(
-            username=username, email=email, first_name=fn, last_name=ln,
+    ]:
+        u = get_or_create(User, dict(username=username), dict(
+            email=email, first_name=fn, last_name=ln,
             role=role, position=pos, station_id=sid, is_active=True,
-        )
-        u.set_password("password123")
-        db.session.add(u)
+        ))
+        if not u.password_hash:
+            u.set_password("password123")
     db.session.commit()
 
     for i in range(5):
-        cert = FireCertificate(
-            certificate_no=f"FC-SEED-{i+1:04d}",
+        get_or_create(FireCertificate, dict(certificate_no=f"FC-SEED-{i+1:04d}"), dict(
             applicant_name=f"Applicant {i+1}",
             applicant_email=f"app{i+1}@email.com",
             business_name=f"Business {i+1}",
@@ -1711,56 +1735,38 @@ def seed_database():
             status="approved" if i < 3 else "pending",
             issue_date=date.today() if i < 3 else None,
             submitted_by=2,
-        )
-        db.session.add(cert)
+        ))
     db.session.commit()
 
-    hydrant_data = [
+    for hno, loc, lat, lon in [
         ("H-001", "Main Street & Church Street", 6.8050, -58.1550),
         ("H-002", "Regent Street & Camp Street", 6.8100, -58.1580),
         ("H-003", "Water Street & Broad Street", 6.8000, -58.1500),
-    ]
-    for hno, loc, lat, lon in hydrant_data:
-        h = Hydrant(hydrant_no=hno, location=loc, latitude=lat, longitude=lon)
-        db.session.add(h)
+    ]:
+        get_or_create(Hydrant, dict(hydrant_no=hno), dict(
+            location=loc, latitude=lat, longitude=lon,
+        ))
     db.session.commit()
 
-    inc = Incident(
-        incident_no="INC-SEED-001",
+    get_or_create(Incident, dict(incident_no="INC-SEED-001"), dict(
         incident_type="Structure Fire",
         location="Main Street, Georgetown",
         latitude=6.8050, longitude=-58.1550,
         description="Fire at commercial building",
-        severity="high",
-        status="active",
-        dispatched_by=2,
-        dispatch_time=datetime.utcnow(),
-    )
-    db.session.add(inc)
+        severity="high", status="active",
+        dispatched_by=2, dispatch_time=datetime.utcnow(),
+    ))
     db.session.commit()
 
-    b1 = Budget(
-        fiscal_year=2026,
-        category="Operations",
-        allocated_amount=50000000.0,
-        spent_amount=12500000.0,
-        remaining=37500000.0,
-    )
-    b2 = Budget(
-        fiscal_year=2026,
-        category="Training",
-        allocated_amount=10000000.0,
-        spent_amount=3000000.0,
-        remaining=7000000.0,
-    )
-    b3 = Budget(
-        fiscal_year=2026,
-        category="Vehicle Maintenance",
-        allocated_amount=15000000.0,
-        spent_amount=5000000.0,
-        remaining=10000000.0,
-    )
-    db.session.add_all([b1, b2, b3])
+    for cat, alloc, spent in [
+        ("Operations", 50000000.0, 12500000.0),
+        ("Training", 10000000.0, 3000000.0),
+        ("Vehicle Maintenance", 15000000.0, 5000000.0),
+    ]:
+        get_or_create(Budget, dict(fiscal_year=2026, category=cat), dict(
+            allocated_amount=alloc, spent_amount=spent,
+            remaining=alloc - spent,
+        ))
     db.session.commit()
 
 
