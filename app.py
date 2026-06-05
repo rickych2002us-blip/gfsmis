@@ -75,6 +75,9 @@ app = Flask(__name__)
 app.config.from_object(Config)
 db.init_app(app)
 
+with app.app_context():
+    db.create_all()
+
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
 login_manager.login_message_category = "info"
@@ -1766,4 +1769,5 @@ if __name__ == "__main__":
         db.create_all()
         seed_database()
     port = int(os.environ.get("PORT", 5000))
-    app.run(debug=os.environ.get("FLASK_ENV") == "development", host="0.0.0.0", port=port)
+    debug = os.environ.get("FLASK_ENV") != "production"
+    app.run(debug=debug, host="0.0.0.0", port=port)
